@@ -161,7 +161,7 @@
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-white drop-shadow mb-3">Pilih Menu Petualangan</h2>
                 
-                <!-- Explicit Navigation Buttons for Profile and Splash with Back capability -->
+                <!-- Explicit Navigation Buttons with Return Options -->
                 <div class="flex justify-center gap-2 flex-wrap mb-2 px-2">
                     <button onclick="router.navigate('profile')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl shadow text-xs sm:text-sm transition flex items-center gap-1.5">
                         👥 Ganti Profil
@@ -276,20 +276,23 @@
         </div>
 
         <div id="screen-game" class="hidden flex-1 flex flex-col h-full relative">
-            <!-- Game HUD -->
-            <div class="bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl shadow-md flex justify-between items-center mb-2 border-2 border-white shrink-0">
-                <div class="flex items-center gap-2">
-                    <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs sm:text-sm">⏸️ Jeda</button>
-                    <button onclick="router.navigate('worlds')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-xs sm:text-sm hidden sm:block">🌍 Dunia</button>
+            <!-- Game HUD with auto-scaling unwrapped instruction box -->
+            <div class="bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl shadow-md flex justify-between items-center mb-2 border-2 border-white shrink-0 gap-2">
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2 py-1.5 rounded-xl text-xs sm:text-sm">⏸️ Jeda</button>
+                    <button onclick="router.navigate('worlds')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2 py-1.5 rounded-xl text-xs sm:text-sm hidden sm:block">🌍 Dunia</button>
                     <div class="font-bold text-indigo-900 text-xs sm:text-base flex items-center gap-1">
-                        <span>⭐</span> Skor: <span id="game-score" class="text-indigo-600 font-extrabold text-sm sm:text-lg">0</span>
+                        <span>⭐</span> <span id="game-score" class="text-indigo-600 font-extrabold text-sm sm:text-lg">0</span>
                     </div>
                 </div>
-                <div class="bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-xs sm:text-sm text-center flex-1 mx-2 truncate" id="game-instruction">
+                
+                <!-- Fluid Auto-Scaling Instruction Box without Truncation -->
+                <div class="bg-amber-100 px-2 sm:px-3 py-1.5 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-[11px] xs:text-xs sm:text-sm text-center flex-1 mx-1.5 whitespace-normal break-words leading-tight flex items-center justify-center shadow-inner" id="game-instruction">
                     Cari target yang benar!
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="font-bold text-slate-700 text-xs sm:text-sm">Waktu: <span id="game-timer" class="text-rose-600">60</span>s</div>
+
+                <div class="flex items-center gap-1 shrink-0 font-bold text-slate-700 text-xs sm:text-sm">
+                    Waktu: <span id="game-timer" class="text-rose-600 font-extrabold">60</span>s
                 </div>
             </div>
 
@@ -450,7 +453,7 @@
                     <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
                 <div class="border-t border-slate-200 pt-3 text-center">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.8</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.9</p>
                     <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
@@ -551,7 +554,7 @@
             }
         }
 
-        // Distinct world target pools as requested
+        // Distinct world target pools
         const worldPools = {
             hutan: {
                 name: "Dunia Hutan Ceria",
@@ -842,10 +845,10 @@
             arena.innerHTML = '';
 
             const positions = [
-                { left: '15%', top: '20%' },
-                { left: '60%', top: '20%' },
-                { left: '15%', top: '60%' },
-                { left: '60%', top: '60%' }
+                { left: '12%', top: '18%' },
+                { left: '55%', top: '18%' },
+                { left: '12%', top: '58%' },
+                { left: '55%', top: '58%' }
             ].sort(() => 0.5 - Math.random());
 
             currentQuestion.options.forEach((opt, index) => {
@@ -856,14 +859,13 @@
                 let displayHTML = "";
 
                 if (currentQuestion.isColorMode) {
-                    // opt is a color object { name, emoji, style }
                     optValue = opt.name;
                     displayHTML = `<div class="flex items-center gap-2"><span class="text-3xl">${opt.emoji}</span><span>${opt.name}</span></div>`;
-                    el.className = `absolute p-4 sm:p-6 rounded-3xl shadow-xl font-extrabold text-base sm:text-xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
+                    el.className = `absolute p-3 sm:p-5 rounded-3xl shadow-xl font-extrabold text-sm sm:text-xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
                 } else {
                     optValue = opt;
                     displayHTML = `<span>${opt}</span>`;
-                    el.className = `absolute p-4 sm:p-6 rounded-3xl shadow-xl font-extrabold text-base sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim bg-white/95 text-indigo-900 border-indigo-300`;
+                    el.className = `absolute p-3 sm:p-5 rounded-3xl shadow-xl font-extrabold text-sm sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim bg-white/95 text-indigo-900 border-indigo-300`;
                 }
 
                 el.style.left = pos.left;
