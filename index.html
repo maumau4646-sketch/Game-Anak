@@ -118,7 +118,7 @@
             <p class="text-sm sm:text-lg md:text-xl text-white/95 font-medium mb-6 max-w-md px-4">“Bidik, Belajar, dan Jadi Pintar! Bermain sambil belajar untuk anak usia 1–11 tahun.”</p>
             
             <button onclick="startAppWithAudio(); router.navigate('profile');" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-xl sm:text-2xl px-8 sm:px-10 py-4 sm:py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6 flex items-center gap-3 mx-auto">
-                <span>🔫</span> Mulai Petualangan
+                <span>🤖🔫</span> Mulai Petualangan
             </button>
 
             <!-- Developer Credit Badge PCENK -->
@@ -140,7 +140,7 @@
                 <h2 class="text-xl sm:text-3xl font-bold text-center text-indigo-900 mb-4">Pilih Profil Petualang Cerdas</h2>
                 
                 <div id="profiles-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                    <!-- Dynamic Profiles (Empty by default) -->
+                    <!-- Dynamic Profiles from Firestore -->
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center border-t border-slate-200 pt-4">
@@ -461,7 +461,7 @@
                     <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
                 <div class="border-t border-slate-200 pt-3 text-center">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.6</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.8 (Firestore Enabled)</p>
                     <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
@@ -506,6 +506,83 @@
         </div>
 
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        let db = null;
+        let auth = null;
+        let userId = null;
+
+        window.initFirebaseAndLoad = async function() {
+            try {
+                if (Object.keys(firebaseConfig).length > 0) {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    window.appDb = db;
+                    window.appUserId = userId;
+                    window.appAuth = auth;
+                    await loadProfilesFromFirestore();
+                } else {
+                    // Fallback to in-memory if no firebase config
+                    renderProfiles();
+                }
+            } catch (e) {
+                console.log("Firebase init fallback:", e);
+                renderProfiles();
+            }
+        };
+
+        window.loadProfilesFromFirestore = async function() {
+            if (!db || !auth || !auth.currentUser) return;
+            try {
+                const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
+                const snapshot = await getDocs(profilesRef);
+                appState.profiles = [];
+                snapshot.forEach(docSnap => {
+                    appState.profiles.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderProfiles();
+            } catch (e) {
+                console.log("Error loading profiles:", e);
+                renderProfiles();
+            }
+        };
+
+        window.saveProfileToFirestore = async function(profileObj) {
+            if (!db || !auth || !auth.currentUser) return;
+            try {
+                const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
+                const docRef = await addDoc(profilesRef, profileObj);
+                return docRef.id;
+            } catch (e) {
+                console.log("Error saving profile:", e);
+            }
+            return null;
+        };
+
+        window.updateProfileInFirestore = async function(profileId, updatedFields) {
+            if (!db || !auth || !auth.currentUser) return;
+            try {
+                const profileDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles', profileId);
+                await updateDoc(profileDocRef, updatedFields);
+            } catch (e) {
+                console.log("Error updating profile:", e);
+            }
+        };
+    </script>
 
     <script>
         let audioEnabled = true;
@@ -634,7 +711,6 @@
             }
         }
 
-        // Distinct world target pools
         const worldPools = {
             hutan: {
                 name: "Dunia Hutan Ceria",
@@ -681,11 +757,11 @@
 
         let appState = {
             currentScreen: 'splash',
-            activeProfileId: 0,
+            activeProfileId: null,
             activeWorld: 'hutan',
             activeGameMode: 1,
             selectedAvatar: '👦',
-            profiles: [], // Default profiles removed as requested
+            profiles: [],
             achievementsData: [
                 { id: 1, title: "Pemain Cepat", desc: "Menyelesaikan 10 target dengan cepat", icon: "⚡", unlocked: true, claimed: false, reward: 5 },
                 { id: 2, title: "Ahli Huruf & Ejaan", desc: "Mengenal huruf dan ejaan kata", icon: "🔤", unlocked: true, claimed: false, reward: 5 },
@@ -698,9 +774,8 @@
 
         const router = {
             navigate: function(screenName) {
-                // If trying to access home/worlds/game without profiles, redirect to profile creation first
-                if (screenName !== 'splash' && screenName !== 'profile' && screenName !== 'parentDashboard' && screenName !== 'settings' && appState.profiles.length === 0) {
-                    showMsgBox("⚠️ Buat Profil Dulu", "Silakan tambahkan profil anak terlebih dahulu untuk mulai bermain!");
+                if (screenName !== 'splash' && screenName !== 'profile' && screenName !== 'parentDashboard' && screenName !== 'settings' && (appState.profiles.length === 0 || appState.activeProfileId === null)) {
+                    showMsgBox("⚠️ Pilih Profil Dulu", "Silakan buat atau pilih profil anak terlebih dahulu untuk mulai bermain!");
                     router.navigate('profile');
                     return;
                 }
@@ -749,8 +824,8 @@
                 `;
                 return;
             }
-            container.innerHTML = appState.profiles.map(p => `
-                <div onclick="selectProfile(${p.id})" class="bg-gradient-to-r from-sky-100 to-indigo-100 hover:from-sky-200 hover:to-indigo-200 p-4 rounded-2xl border-2 border-indigo-300 cursor-pointer flex items-center gap-3 shadow transition transform hover:scale-102">
+            container.innerHTML = appState.profiles.map((p, idx) => `
+                <div onclick="selectProfile(${idx})" class="bg-gradient-to-r from-sky-100 to-indigo-100 hover:from-sky-200 hover:to-indigo-200 p-4 rounded-2xl border-2 border-indigo-300 cursor-pointer flex items-center gap-3 shadow transition transform hover:scale-102">
                     <span class="text-3xl sm:text-4xl">${p.avatar}</span>
                     <div class="flex-1 min-w-0">
                         <h4 class="font-extrabold text-base sm:text-lg text-indigo-900 truncate">${p.name}</h4>
@@ -761,9 +836,9 @@
             `).join('');
         }
 
-        function selectProfile(id) {
-            appState.activeProfileId = id;
-            const p = appState.profiles[id];
+        function selectProfile(index) {
+            appState.activeProfileId = index;
+            const p = appState.profiles[index];
             const welcomeNameEl = document.getElementById('welcome-name');
             if (welcomeNameEl) welcomeNameEl.innerText = p.name;
             updateHeader();
@@ -771,8 +846,8 @@
         }
 
         function updateHeader() {
-            if (appState.profiles.length === 0) return;
-            const p = appState.profiles[appState.activeProfileId] || appState.profiles[0];
+            if (appState.profiles.length === 0 || appState.activeProfileId === null) return;
+            const p = appState.profiles[appState.activeProfileId];
             if (!p) return;
             const avatarEl = document.getElementById('header-avatar');
             const nameEl = document.getElementById('header-name');
@@ -800,14 +875,14 @@
                 event.currentTarget.classList.add('bg-sky-100', 'border-2', 'border-sky-500');
             }
         }
-        function saveNewProfile() {
+        
+        async function saveNewProfile() {
             const nameInput = document.getElementById('input-new-name');
             const ageInput = document.getElementById('input-new-age');
             const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Petualang Cilik';
             const age = (ageInput && ageInput.value) ? parseInt(ageInput.value) : 5;
-            const newId = appState.profiles.length;
-            appState.profiles.push({
-                id: newId,
+            
+            const newProfileData = {
                 name: name,
                 age: age,
                 avatar: appState.selectedAvatar,
@@ -815,10 +890,15 @@
                 stars: 10,
                 gamesPlayed: 0,
                 timeMinutes: 0
-            });
+            };
+
+            const docId = await window.saveProfileToFirestore(newProfileData);
+            const savedProfile = { id: docId || crypto.randomUUID(), ...newProfileData };
+            appState.profiles.push(savedProfile);
+
             closeAddProfileModal();
             renderProfiles();
-            selectProfile(newId);
+            selectProfile(appState.profiles.length - 1);
         }
 
         function selectWorld(worldKey) {
@@ -1068,14 +1148,22 @@
             showMsgBox("⏸️ Permainan Dijeda", "Tekan Lanjutkan untuk kembali bermain.");
         }
 
-        function endGame() {
+        async function endGame() {
             stopGameLoop();
-            if (appState.profiles.length > 0) {
-                const p = appState.profiles[appState.activeProfileId] || appState.profiles[0];
+            if (appState.profiles.length > 0 && appState.activeProfileId !== null) {
+                const p = appState.profiles[appState.activeProfileId];
                 if (p) {
                     p.stars += Math.floor(gameScore / 20) + 1;
                     p.gamesPlayed += 1;
                     if (p.gamesPlayed % 5 === 0) p.level += 1;
+                    
+                    if (p.id) {
+                        await window.updateProfileInFirestore(p.id, {
+                            stars: p.stars,
+                            gamesPlayed: p.gamesPlayed,
+                            level: p.level
+                        });
+                    }
                 }
             }
             const resScore = document.getElementById('result-score');
@@ -1092,8 +1180,8 @@
         }
 
         function updateParentDashboard() {
-            if (appState.profiles.length === 0) return;
-            const p = appState.profiles[appState.activeProfileId] || appState.profiles[0];
+            if (appState.profiles.length === 0 || appState.activeProfileId === null) return;
+            const p = appState.profiles[appState.activeProfileId];
             if (!p) return;
             document.getElementById('parent-profile-name').innerText = p.name;
             document.getElementById('stat-games').innerText = p.gamesPlayed;
@@ -1153,13 +1241,18 @@
             }).join('');
         }
 
-        function claimAchievement(index) {
+        async function claimAchievement(index) {
             const ach = appState.achievementsData[index];
             if (ach && ach.unlocked && !ach.claimed) {
                 ach.claimed = true;
-                if (appState.profiles.length > 0) {
-                    const p = appState.profiles[appState.activeProfileId] || appState.profiles[0];
-                    if (p) p.stars += ach.reward;
+                if (appState.profiles.length > 0 && appState.activeProfileId !== null) {
+                    const p = appState.profiles[appState.activeProfileId];
+                    if (p) {
+                        p.stars += ach.reward;
+                        if (p.id) {
+                            await window.updateProfileInFirestore(p.id, { stars: p.stars });
+                        }
+                    }
                 }
                 playSound('success');
                 showMsgBox("🏆 Hadiah Diklaim!", `Selamat! Kamu mendapatkan +${ach.reward} Bintang.`);
@@ -1171,8 +1264,8 @@
         function renderWardrobe() {
             const list = document.getElementById('wardrobe-list');
             if (!list) return;
-            const currentLevel = (appState.profiles.length > 0 && appState.profiles[appState.activeProfileId]) ? appState.profiles[appState.activeProfileId].level : 1;
-            const currentStars = (appState.profiles.length > 0 && appState.profiles[appState.activeProfileId]) ? appState.profiles[appState.activeProfileId].stars : 0;
+            const currentLevel = (appState.profiles.length > 0 && appState.activeProfileId !== null) ? appState.profiles[appState.activeProfileId].level : 1;
+            const currentStars = (appState.profiles.length > 0 && appState.activeProfileId !== null) ? appState.profiles[appState.activeProfileId].stars : 0;
 
             const items = [
                 { name: "Pistol 3D Robot Bimo", icon: "🤖🔫", unlocked: true, requirement: "Bawaan Awal" },
@@ -1204,6 +1297,11 @@
         }
 
         window.onload = function() {
+            if (typeof window.initFirebaseAndLoad === 'function') {
+                window.initFirebaseAndLoad();
+            } else {
+                renderProfiles();
+            }
             router.navigate('splash');
         };
     </script>
