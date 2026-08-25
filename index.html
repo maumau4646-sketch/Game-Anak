@@ -26,14 +26,14 @@
         }
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(2deg); }
+            50% { transform: translateY(-6px) rotate(1.5deg); }
         }
         .pulse-soft {
             animation: pulseSoft 2s infinite;
         }
         @keyframes pulseSoft {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.04); }
+            50% { transform: scale(1.03); }
         }
         .pop-in {
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -131,7 +131,7 @@
             <div class="bg-white/95 backdrop-blur-md p-4 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-4 border-white relative max-h-[85vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4 gap-2">
                     <button onclick="router.navigate('splash')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1">
-                        ⬅️ Awal
+                        ⬅️ Kembali ke Awal
                     </button>
                     <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1">
                         🎮 Beranda ➡️
@@ -161,7 +161,6 @@
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-white drop-shadow mb-3">Pilih Menu Petualangan</h2>
                 
-                <!-- Explicit Navigation Buttons with Return Options -->
                 <div class="flex justify-center gap-2 flex-wrap mb-2 px-2">
                     <button onclick="router.navigate('profile')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl shadow text-xs sm:text-sm transition flex items-center gap-1.5">
                         👥 Ganti Profil
@@ -173,7 +172,7 @@
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto w-full">
-                <!-- Mulai Bermain: Instant Random Quick Play Launcher -->
+                <!-- Mulai Bermain: Instant Quick Play Launcher -->
                 <button onclick="startQuickPlay()" class="bg-gradient-to-br from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
                     <span class="text-4xl sm:text-5xl">🔫</span>
                     <span class="font-extrabold text-sm sm:text-lg">Mulai Bermain</span>
@@ -220,28 +219,28 @@
                     <span class="text-4xl sm:text-5xl">🌳</span>
                     <div>
                         <h3 class="text-lg sm:text-xl font-extrabold">Dunia Hutan Ceria</h3>
-                        <p class="text-emerald-100 text-xs sm:text-sm">Target: Apel, Kucing, Kelinci, Bunga, Daun</p>
+                        <p class="text-emerald-100 text-xs sm:text-sm">Target: Buah, Hewan, Bunga, Daun</p>
                     </div>
                 </div>
                 <div onclick="selectWorld('laut')" class="world-card bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
                     <span class="text-4xl sm:text-5xl">🌊</span>
                     <div>
                         <h3 class="text-lg sm:text-xl font-extrabold">Dunia Laut Ajaib</h3>
-                        <p class="text-cyan-100 text-xs sm:text-sm">Target: Ikan, Gurita, Lumba-lumba, Kerang</p>
+                        <p class="text-cyan-100 text-xs sm:text-sm">Target: Ikan, Bintang Laut, Kerang, Gelembung</p>
                     </div>
                 </div>
                 <div onclick="selectWorld('angkasa')" class="world-card bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
                     <span class="text-4xl sm:text-5xl">🚀</span>
                     <div>
                         <h3 class="text-lg sm:text-xl font-extrabold">Dunia Luar Angkasa</h3>
-                        <p class="text-indigo-100 text-xs sm:text-sm">Target: Roket, Planet, Bintang, Meteor</p>
+                        <p class="text-indigo-100 text-xs sm:text-sm">Target: Planet, Bintang, Roket, Meteor</p>
                     </div>
                 </div>
                 <div onclick="selectWorld('permen')" class="world-card bg-gradient-to-r from-pink-500 to-rose-600 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
                     <span class="text-4xl sm:text-5xl">🍭</span>
                     <div>
                         <h3 class="text-lg sm:text-xl font-extrabold">Dunia Permen</h3>
-                        <p class="text-pink-100 text-xs sm:text-sm">Target: Permen, Donat, Cupcake, Cokelat</p>
+                        <p class="text-pink-100 text-xs sm:text-sm">Target: Permen, Donat, Kue, Balon</p>
                     </div>
                 </div>
             </div>
@@ -276,7 +275,6 @@
         </div>
 
         <div id="screen-game" class="hidden flex-1 flex flex-col h-full relative">
-            <!-- Game HUD with auto-scaling unwrapped instruction box -->
             <div class="bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl shadow-md flex justify-between items-center mb-2 border-2 border-white shrink-0 gap-2">
                 <div class="flex items-center gap-1.5 shrink-0">
                     <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2 py-1.5 rounded-xl text-xs sm:text-sm">⏸️ Jeda</button>
@@ -286,7 +284,6 @@
                     </div>
                 </div>
                 
-                <!-- Fluid Auto-Scaling Instruction Box without Truncation -->
                 <div class="bg-amber-100 px-2 sm:px-3 py-1.5 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-[11px] xs:text-xs sm:text-sm text-center flex-1 mx-1.5 whitespace-normal break-words leading-tight flex items-center justify-center shadow-inner" id="game-instruction">
                     Cari target yang benar!
                 </div>
@@ -296,7 +293,7 @@
                 </div>
             </div>
 
-            <!-- Game Arena (Interactive Canvas Area with Synchronized Targets & No Gun Icons) -->
+            <!-- Game Arena with auto-scaling responsive target buttons -->
             <div id="game-arena" class="flex-1 bg-gradient-to-b from-sky-200 to-indigo-200 rounded-3xl shadow-inner relative overflow-hidden border-4 border-white/60 min-h-[320px] sm:min-h-[420px] cursor-pointer touch-none">
                 <!-- Synchronized targets spawned here -->
             </div>
@@ -554,7 +551,7 @@
             }
         }
 
-        // Distinct world target pools
+        // Distinct world target pools with clean short labels
         const worldPools = {
             hutan: {
                 name: "Dunia Hutan Ceria",
@@ -569,7 +566,7 @@
             angkasa: {
                 name: "Dunia Luar Angkasa",
                 emoji: "🚀",
-                items: ['🚀 Roket', '🪐 Planet', '⭐ Bintang', '☄️ Meteor', '👽 Alien Lucu', '🛰️ Satelit', '🌕 Bulan', '☀️ Matahari']
+                items: ['🚀 Roket', '🪐 Planet', '⭐ Bintang', '☄️ Meteor', '👽 Alien', '🛰️ Satelit', '🌕 Bulan', '☀️ Matahari']
             },
             permen: {
                 name: "Dunia Permen",
@@ -578,7 +575,7 @@
             }
         };
 
-        // Color pool for Mode 4 (Cari Warna) with visual representation
+        // Color pool for Mode 4 (Cari Warna)
         const colorPool = [
             { name: "Merah", emoji: "🔴", style: "bg-red-500 text-white border-red-300" },
             { name: "Hijau", emoji: "🟢", style: "bg-emerald-500 text-white border-emerald-300" },
@@ -845,10 +842,10 @@
             arena.innerHTML = '';
 
             const positions = [
-                { left: '12%', top: '18%' },
-                { left: '55%', top: '18%' },
-                { left: '12%', top: '58%' },
-                { left: '55%', top: '58%' }
+                { left: '10%', top: '15%' },
+                { left: '52%', top: '15%' },
+                { left: '10%', top: '55%' },
+                { left: '52%', top: '55%' }
             ].sort(() => 0.5 - Math.random());
 
             currentQuestion.options.forEach((opt, index) => {
@@ -860,12 +857,22 @@
 
                 if (currentQuestion.isColorMode) {
                     optValue = opt.name;
-                    displayHTML = `<div class="flex items-center gap-2"><span class="text-3xl">${opt.emoji}</span><span>${opt.name}</span></div>`;
-                    el.className = `absolute p-3 sm:p-5 rounded-3xl shadow-xl font-extrabold text-sm sm:text-xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
+                    // Auto-scaling responsive stacked layout for color mode on mobile
+                    displayHTML = `<div class="flex flex-col sm:flex-row items-center justify-center gap-1 text-center p-1"><span class="text-2xl sm:text-3xl">${opt.emoji}</span><span class="text-[11px] xs:text-xs sm:text-sm md:text-base whitespace-normal break-words leading-tight font-bold">${opt.name}</span></div>`;
+                    el.className = `absolute w-[38%] sm:w-[42%] h-[35%] sm:h-[38%] p-2 rounded-2xl sm:rounded-3xl shadow-xl font-extrabold cursor-pointer transform transition hover:scale-105 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
                 } else {
                     optValue = opt;
-                    displayHTML = `<span>${opt}</span>`;
-                    el.className = `absolute p-3 sm:p-5 rounded-3xl shadow-xl font-extrabold text-sm sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim bg-white/95 text-indigo-900 border-indigo-300`;
+                    // Auto-scaling responsive stacked layout for items/numbers on mobile to prevent clipping
+                    let parts = opt.split(' ');
+                    let emojiPart = parts.length > 1 ? parts[0] : '';
+                    let textPart = parts.length > 1 ? parts.slice(1).join(' ') : opt;
+
+                    if (emojiPart) {
+                        displayHTML = `<div class="flex flex-col items-center justify-center gap-0.5 sm:gap-1 text-center p-1"><span class="text-2xl sm:text-3xl">${emojiPart}</span><span class="text-[11px] xs:text-xs sm:text-sm md:text-base whitespace-normal break-words leading-tight font-extrabold">${textPart}</span></div>`;
+                    } else {
+                        displayHTML = `<div class="flex items-center justify-center text-center p-1"><span class="text-sm xs:text-base sm:text-xl md:text-2xl whitespace-normal break-words leading-tight font-black">${opt}</span></div>`;
+                    }
+                    el.className = `absolute w-[38%] sm:w-[42%] h-[35%] sm:h-[38%] p-2 rounded-2xl sm:rounded-3xl shadow-xl font-extrabold cursor-pointer transform transition hover:scale-105 active:scale-95 flex items-center justify-center border-4 pop-in float-anim bg-white/95 text-indigo-900 border-indigo-300`;
                 }
 
                 el.style.left = pos.left;
