@@ -117,7 +117,7 @@
             <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-md mb-2 px-2">Petualangan Tembak Cerdas</h1>
             <p class="text-sm sm:text-lg md:text-xl text-white/95 font-medium mb-6 max-w-md px-4">“Bidik, Belajar, dan Jadi Pintar! Bermain sambil belajar untuk anak usia 1–11 tahun.”</p>
             
-            <button onclick="router.navigate('profile')" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-xl sm:text-2xl px-8 sm:px-10 py-4 sm:py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6 flex items-center gap-3 mx-auto">
+            <button onclick="startAppWithAudio(); router.navigate('profile');" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-xl sm:text-2xl px-8 sm:px-10 py-4 sm:py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6 flex items-center gap-3 mx-auto">
                 <span>🔫</span> Mulai Bermain
             </button>
 
@@ -440,17 +440,33 @@
                 <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">⚙️ Pengaturan</h2>
                 <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
             </div>
-            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-xl space-y-3 border-4 border-white max-w-xl mx-auto w-full">
+            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white max-w-xl mx-auto w-full">
                 <div class="flex justify-between items-center">
-                    <span class="font-bold text-slate-700 text-base sm:text-lg">Musik Latar</span>
-                    <button onclick="toggleMusic()" id="setting-music" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
+                    <div>
+                        <span class="font-bold text-slate-700 text-base sm:text-lg block">Musik Latar (BGM)</span>
+                        <span class="text-xs text-slate-500">Atur suara dan volume musik latar</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleMusic()" id="setting-music" class="bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm shadow">ON</button>
+                    </div>
                 </div>
+                
+                <!-- BGM Volume Controls -->
+                <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
+                    <span class="font-bold text-indigo-900 text-sm">Volume Musik (BGM)</span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="changeBGMVolume(-0.1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black w-8 h-8 rounded-xl shadow text-base flex items-center justify-center transition active:scale-95">-</button>
+                        <span id="bgm-vol-display" class="font-extrabold text-indigo-900 text-sm w-10 text-center">30%</span>
+                        <button onclick="changeBGMVolume(0.1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black w-8 h-8 rounded-xl shadow text-base flex items-center justify-center transition active:scale-95">+</button>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-center border-t border-slate-200 pt-3">
                     <span class="font-bold text-slate-700 text-base sm:text-lg">Efek Suara & Narasi</span>
                     <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
                 <div class="border-t border-slate-200 pt-3 text-center">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.9</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.0</p>
                     <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
@@ -500,11 +516,83 @@
         let audioEnabled = true;
         let musicEnabled = true;
         let audioCtx = null;
+        let bgmInterval = null;
+        let bgmVolume = 0.3;
+        let bgmNoteIndex = 0;
+        const bgmNotes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23, 392.00, 329.63]; // C major cheerful chord progression
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+        }
+
+        function startAppWithAudio() {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            startBGM();
+        }
+
+        function startBGM() {
+            if (!musicEnabled || bgmInterval) return;
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            if (bgmInterval) clearInterval(bgmInterval);
+
+            bgmInterval = setInterval(() => {
+                if (!musicEnabled || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(bgmNotes[bgmNoteIndex], audioCtx.currentTime);
+                    
+                    gain.gain.setValueAtTime(bgmVolume * 0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.45);
+                    
+                    bgmNoteIndex = (bgmNoteIndex + 1) % bgmNotes.length;
+                } catch(e) {
+                    console.log("BGM playback error:", e);
+                }
+            }, 450);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            const btn = document.getElementById('setting-music');
+            if (btn) btn.innerText = musicEnabled ? "ON" : "OFF";
+            if (musicEnabled) {
+                startBGM();
+            } else {
+                stopBGM();
+            }
+        }
+
+        function changeBGMVolume(delta) {
+            bgmVolume = Math.max(0, Math.min(1, Math.round((bgmVolume + delta) * 10) / 10));
+            const volDisplay = document.getElementById('bgm-vol-display');
+            if (volDisplay) {
+                volDisplay.innerText = Math.round(bgmVolume * 100) + '%';
+            }
+            playSound('pop');
         }
 
         function playSound(type) {
@@ -634,6 +722,8 @@
 
                 if (screenName === 'game') initGame();
                 else stopGameLoop();
+
+                if (musicEnabled) startBGM();
             }
         };
 
@@ -857,12 +947,10 @@
 
                 if (currentQuestion.isColorMode) {
                     optValue = opt.name;
-                    // Auto-scaling responsive stacked layout for color mode on mobile
                     displayHTML = `<div class="flex flex-col sm:flex-row items-center justify-center gap-1 text-center p-1"><span class="text-2xl sm:text-3xl">${opt.emoji}</span><span class="text-[11px] xs:text-xs sm:text-sm md:text-base whitespace-normal break-words leading-tight font-bold">${opt.name}</span></div>`;
                     el.className = `absolute w-[38%] sm:w-[42%] h-[35%] sm:h-[38%] p-2 rounded-2xl sm:rounded-3xl shadow-xl font-extrabold cursor-pointer transform transition hover:scale-105 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
                 } else {
                     optValue = opt;
-                    // Auto-scaling responsive stacked layout for items/numbers on mobile to prevent clipping
                     let parts = opt.split(' ');
                     let emojiPart = parts.length > 1 ? parts[0] : '';
                     let textPart = parts.length > 1 ? parts.slice(1).join(' ') : opt;
@@ -976,12 +1064,6 @@
             if (btn) btn.innerText = audioEnabled ? "ON" : "OFF";
             const audioToggleBtn = document.getElementById('audio-toggle-btn');
             if (audioToggleBtn) audioToggleBtn.innerText = audioEnabled ? "🔊" : "🔇";
-        }
-
-        function toggleMusic() {
-            musicEnabled = !musicEnabled;
-            const btn = document.getElementById('setting-music');
-            if (btn) btn.innerText = musicEnabled ? "ON" : "OFF";
         }
 
         function renderAchievements() {
