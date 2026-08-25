@@ -209,27 +209,27 @@
 
             <h3 class="text-xl sm:text-2xl font-bold text-white drop-shadow mb-3">🎯 Pilih Mode Permainan</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
-                <button onclick="startGameMode(1)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-emerald-300 text-center font-bold text-emerald-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(1)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-emerald-300 text-center font-bold text-emerald-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">🔤</div>
                     Pengenalan Huruf
                 </button>
-                <button onclick="startGameMode(2)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-pink-300 text-center font-bold text-pink-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(2)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-pink-300 text-center font-bold text-pink-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">🔠</div>
                     Pengejaan Kata
                 </button>
-                <button onclick="startGameMode(3)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-blue-300 text-center font-bold text-blue-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(3)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-blue-300 text-center font-bold text-blue-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">🔢</div>
                     Tembak Angka
                 </button>
-                <button onclick="startGameMode(4)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-indigo-300 text-center font-bold text-indigo-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(4)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-indigo-300 text-center font-bold text-indigo-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">➕</div>
                     Hitung Cepat
                 </button>
-                <button onclick="startGameMode(5)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-amber-300 text-center font-bold text-amber-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(5)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-amber-300 text-center font-bold text-amber-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">🎨</div>
                     Cari Warna
                 </button>
-                <button onclick="startGameMode(6)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-purple-300 text-center font-bold text-purple-900 transition hover:scale-105 text-xs sm:text-sm">
+                <button onclick="startGameMode(6)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-purple-300 text-center font-bold text-purple-900 transition hover:scale-105 text-xs sm:text-sm flex flex-col items-center justify-center">
                     <div class="text-2xl sm:text-3xl mb-1">🌳</div>
                     Dunia Tematik
                 </button>
@@ -462,7 +462,7 @@
                     <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
                 <div class="border-t border-slate-200 pt-3 text-center">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.9 (Dual-Persistence Enabled)</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v3.0 (Dual-Persistence Enabled)</p>
                     <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
@@ -519,7 +519,33 @@
         let db = null;
         let auth = null;
 
+        // Instant local storage load on startup
+        window.loadFromLocalStorage = function() {
+            try {
+                const stored = localStorage.getItem('petualang_profiles_' + appId);
+                if (stored) {
+                    appState.profiles = JSON.parse(stored);
+                } else {
+                    appState.profiles = [];
+                }
+            } catch (e) {
+                appState.profiles = [];
+            }
+            renderProfiles();
+        };
+
+        window.saveToLocalStorage = function() {
+            try {
+                localStorage.setItem('petualang_profiles_' + appId, JSON.stringify(appState.profiles));
+            } catch (e) {
+                console.log("LocalStorage save error:", e);
+            }
+        };
+
         window.initFirebaseAndLoad = async function() {
+            // 1. Instantly load local data so profiles show up immediately
+            window.loadFromLocalStorage();
+
             try {
                 if (Object.keys(firebaseConfig).length > 0) {
                     const app = initializeApp(firebaseConfig);
@@ -532,62 +558,48 @@
                     }
                     window.appDb = db;
                     window.appAuth = auth;
-                    await loadProfilesFromFirestoreOrStorage();
-                } else {
-                    loadFromLocalStorage();
+
+                    // 2. Sync with Firestore in background
+                    await syncProfilesWithFirestore();
                 }
             } catch (e) {
                 console.log("Firebase init fallback to localStorage:", e);
-                loadFromLocalStorage();
             }
         };
 
-        window.loadProfilesFromFirestoreOrStorage = async function() {
+        window.syncProfilesWithFirestore = async function() {
+            if (!db || !auth || !auth.currentUser) return;
             try {
-                if (db && auth && auth.currentUser) {
-                    const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
-                    const snapshot = await getDocs(profilesRef);
-                    if (!snapshot.empty) {
-                        appState.profiles = [];
-                        snapshot.forEach(docSnap => {
-                            appState.profiles.push({ id: docSnap.id, ...docSnap.data() });
-                        });
-                        saveToLocalStorage(); // Sync with local storage
+                const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
+                const snapshot = await getDocs(profilesRef);
+                
+                if (!snapshot.empty) {
+                    let firestoreProfiles = [];
+                    snapshot.forEach(docSnap => {
+                        firestoreProfiles.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+                    if (firestoreProfiles.length > 0) {
+                        appState.profiles = firestoreProfiles;
+                        window.saveToLocalStorage();
                         renderProfiles();
-                        return;
+                    }
+                } else {
+                    // If Firestore is empty but we have local profiles, push them to Firestore
+                    if (appState.profiles.length > 0) {
+                        for (let p of appState.profiles) {
+                            const { id, ...data } = p;
+                            await addDoc(profilesRef, data);
+                        }
                     }
                 }
             } catch (e) {
-                console.log("Firestore load error, falling back to local storage:", e);
+                console.log("Firestore sync error:", e);
             }
-            loadFromLocalStorage();
         };
 
-        function loadFromLocalStorage() {
-            try {
-                const stored = localStorage.getItem('petualang_profiles_' + appId);
-                if (stored) {
-                    appState.profiles = JSON.parse(stored);
-                } else {
-                    appState.profiles = [];
-                }
-            } catch (e) {
-                appState.profiles = [];
-            }
-            renderProfiles();
-        }
-
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem('petualang_profiles_' + appId, JSON.stringify(appState.profiles));
-            } catch (e) {
-                console.log("LocalStorage save error:", e);
-            }
-        }
-
         window.saveProfileToFirestore = async function(profileObj) {
-            // Always save to local storage immediately for absolute reload reliability
-            saveToLocalStorage();
+            // Save to local storage immediately for 100% reload reliability
+            window.saveToLocalStorage();
 
             if (!db || !auth || !auth.currentUser) return null;
             try {
@@ -601,7 +613,7 @@
         };
 
         window.updateProfileInFirestore = async function(profileId, updatedFields) {
-            saveToLocalStorage();
+            window.saveToLocalStorage();
             if (!db || !auth || !auth.currentUser) return;
             try {
                 const profileDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles', profileId);
@@ -923,6 +935,7 @@
             const docId = await window.saveProfileToFirestore(newProfileData);
             const savedProfile = { id: docId || crypto.randomUUID(), ...newProfileData };
             appState.profiles.push(savedProfile);
+            window.saveToLocalStorage();
 
             closeAddProfileModal();
             renderProfiles();
@@ -1192,6 +1205,7 @@
                             level: p.level
                         });
                     }
+                    window.saveToLocalStorage();
                 }
             }
             const resScore = document.getElementById('result-score');
@@ -1208,7 +1222,7 @@
         }
 
         function updateParentDashboard() {
-            if (appState.profiles.length === 0 || appState.activeProfileId !== null) {
+            if (appState.profiles.length > 0 && appState.activeProfileId !== null) {
                 const p = appState.profiles[appState.activeProfileId];
                 if (p) {
                     document.getElementById('parent-profile-name').innerText = p.name;
@@ -1282,6 +1296,7 @@
                         if (p.id) {
                             await window.updateProfileInFirestore(p.id, { stars: p.stars });
                         }
+                        window.saveToLocalStorage();
                     }
                 }
                 playSound('success');
@@ -1330,7 +1345,7 @@
             if (typeof window.initFirebaseAndLoad === 'function') {
                 window.initFirebaseAndLoad();
             } else {
-                loadFromLocalStorage();
+                window.loadFromLocalStorage();
             }
             router.navigate('splash');
         };
