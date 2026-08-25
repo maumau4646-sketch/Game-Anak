@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Tembak Cerdas - Game Edukasi Anak</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', 'Nunito', sans-serif;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .float-anim {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        .pulse-soft {
+            animation: pulseSoft 2s infinite;
+        }
+        @keyframes pulseSoft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pop-in {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particleAnim 0.8s ease-out forwards;
+        }
+        @keyframes particleAnim {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-sky-400 via-indigo-300 to-pink-300 min-h-screen text-slate-800 overflow-x-hidden flex flex-col justify-between">
+
+    <div id="app" class="w-full max-w-5xl mx-auto flex-1 flex flex-col p-4 relative">
+        
+        <!-- Top Navigation / Header (Hidden on Splash) -->
+        <header id="main-header" class="hidden flex justify-between items-center bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl shadow-lg mb-4 border-2 border-white">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 sm:px-4 py-2 rounded-xl shadow transition transform active:scale-95 flex items-center gap-1.5 text-sm sm:text-base">
+                    🏠 Beranda
+                </button>
+                <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-3 py-2 rounded-xl shadow transition text-xs sm:text-sm flex items-center gap-1.5 border border-sky-300" title="Ganti Profil">
+                    <span id="header-avatar">👦</span>
+                    <span id="header-name" class="font-bold">Budi</span>
+                    <span class="text-xs bg-sky-200 px-1.5 py-0.5 rounded ml-1">Ganti</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden sm:flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 text-indigo-900 font-bold text-sm">
+                    ⭐ <span id="header-stars">15</span> Bintang
+                </div>
+                <button onclick="router.navigate('parentDashboard')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold px-3 py-2 rounded-xl shadow text-sm transition flex items-center gap-1">
+                    ⚙️ Ortu
+                </button>
+                <button onclick="toggleAudio()" id="audio-toggle-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-2.5 rounded-xl shadow transition">
+                    🔊
+                </button>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: SPLASH SCREEN -->
+        <div id="screen-splash" class="flex-1 flex flex-col items-center justify-center text-center py-12">
+            <div class="float-anim mb-4 text-8xl drop-shadow-xl">🚀</div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white drop-shadow-md mb-2">Petualangan Tembak Cerdas</h1>
+            <p class="text-lg md:text-xl text-white/90 font-medium mb-6 max-w-lg">“Bidik, Belajar, dan Jadi Pintar! Bermain sambil belajar untuk anak usia 1–11 tahun.”</p>
+            
+            <button onclick="router.navigate('profile')" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-2xl px-10 py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6">
+                ✨ Mulai Bermain ✨
+            </button>
+
+            <!-- Developer Credit Badge -->
+            <div class="bg-white/30 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/50 shadow-md text-white font-bold text-sm sm:text-base flex items-center gap-2">
+                🎮 Dibuat dengan ❤️ oleh <span class="bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-xl font-extrabold shadow">PCENK</span>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: PROFILE SELECTION / LOGIN -->
+        <div id="screen-profile" class="hidden flex-1 flex flex-col items-center justify-center py-8">
+            <div class="bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-4 border-white relative">
+                <div class="flex justify-between items-center mb-4">
+                    <button onclick="router.navigate('splash')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-sm transition flex items-center gap-1">
+                        ⬅️ Kembali ke Awal
+                    </button>
+                    <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm transition flex items-center gap-1">
+                        🎮 Lanjut ke Beranda
+                    </button>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-center text-indigo-900 mb-6">Pilih Profil Petualang Cerdas</h2>
+                
+                <div id="profiles-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Dynamic Profile Cards -->
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center border-t border-slate-200 pt-6">
+                    <button onclick="openAddProfileModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2">
+                        ➕ Tambah Profil Baru
+                    </button>
+                    <button onclick="router.navigate('parentDashboard')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2">
+                        🔒 Dashboard Orang Tua
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: HOME SCREEN -->
+        <div id="screen-home" class="hidden flex-1 flex flex-col justify-center py-4">
+            <div class="text-center mb-6">
+                <div class="inline-block bg-white/80 backdrop-blur-md px-6 py-2 rounded-full shadow border border-white text-indigo-900 font-bold mb-2">
+                    🌟 Selamat Datang, <span id="welcome-name">Budi</span>!
+                </div>
+                <h2 class="text-3xl font-extrabold text-white drop-shadow mb-3">Pilih Menu Petualangan</h2>
+                
+                <!-- Quick Navigation Buttons -->
+                <div class="flex justify-center gap-2 flex-wrap mb-2">
+                    <button onclick="router.navigate('profile')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition flex items-center gap-2">
+                        👥 Pilihan Halaman Profil
+                    </button>
+                    <button onclick="router.navigate('worlds')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition flex items-center gap-2">
+                        🎮 Mulai Permainan
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto w-full">
+                <button onclick="router.navigate('worlds')" class="bg-gradient-to-br from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">🎮</span>
+                    <span class="font-extrabold text-lg">Mulai Bermain</span>
+                </button>
+                <button onclick="router.navigate('worlds')" class="bg-gradient-to-br from-blue-400 to-indigo-600 hover:from-blue-500 hover:to-indigo-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">🌍</span>
+                    <span class="font-extrabold text-lg">Pilih Dunia</span>
+                </button>
+                <button onclick="router.navigate('achievements')" class="bg-gradient-to-br from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">🏆</span>
+                    <span class="font-extrabold text-lg">Pencapaian</span>
+                </button>
+                <button onclick="router.navigate('wardrobe')" class="bg-gradient-to-br from-pink-400 to-rose-600 hover:from-pink-500 hover:to-rose-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">👕</span>
+                    <span class="font-extrabold text-lg">Koleksi Kostum</span>
+                </button>
+                <button onclick="router.navigate('progress')" class="bg-gradient-to-br from-purple-400 to-indigo-600 hover:from-purple-500 hover:to-indigo-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">📊</span>
+                    <span class="font-extrabold text-lg">Progres Belajar</span>
+                </button>
+                <button onclick="router.navigate('settings')" class="bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-5xl">⚙️</span>
+                    <span class="font-extrabold text-lg">Pengaturan</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: WORLD & MODE SELECTION -->
+        <div id="screen-worlds" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">🌍 Pilih Dunia & Mode</h2>
+                <div class="flex gap-2">
+                    <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-3 py-2 rounded-xl shadow text-sm">👥 Pilih Profil</button>
+                    <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">🏠 Beranda</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div onclick="selectWorld('hutan')" class="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
+                    <span class="text-6xl">🌳</span>
+                    <div>
+                        <h3 class="text-2xl font-extrabold">Dunia Hutan Ceria</h3>
+                        <p class="text-emerald-100 text-sm">Target: Buah, Hewan, Bunga & Warna</p>
+                    </div>
+                </div>
+                <div onclick="selectWorld('laut')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
+                    <span class="text-6xl">🌊</span>
+                    <div>
+                        <h3 class="text-2xl font-extrabold">Dunia Laut Ajaib</h3>
+                        <p class="text-cyan-100 text-sm">Target: Ikan, Angka & Hewan Laut</p>
+                    </div>
+                </div>
+                <div onclick="selectWorld('angkasa')" class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
+                    <span class="text-6xl">🚀</span>
+                    <div>
+                        <h3 class="text-2xl font-extrabold">Dunia Luar Angkasa</h3>
+                        <p class="text-indigo-100 text-sm">Target: Planet, Bintang & Sains</p>
+                    </div>
+                </div>
+                <div onclick="selectWorld('permen')" class="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
+                    <span class="text-6xl">🍭</span>
+                    <div>
+                        <h3 class="text-2xl font-extrabold">Dunia Permen</h3>
+                        <p class="text-pink-100 text-sm">Target: Permen, Donat & Kecepatan</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-bold text-white drop-shadow mb-3">🎯 Pilih Mode Permainan</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <button onclick="startGameMode(1)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-emerald-300 text-center font-bold text-emerald-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">🎮</div>
+                    Belajar Sambil Bermain
+                </button>
+                <button onclick="startGameMode(2)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-blue-300 text-center font-bold text-blue-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">🔢</div>
+                    Tembak Angka
+                </button>
+                <button onclick="startGameMode(3)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-indigo-300 text-center font-bold text-indigo-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">➕</div>
+                    Hitung Cepat
+                </button>
+                <button onclick="startGameMode(4)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-pink-300 text-center font-bold text-pink-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">🎨</div>
+                    Cari Warna
+                </button>
+                <button onclick="startGameMode(5)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-amber-300 text-center font-bold text-amber-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">⏱️</div>
+                    Tantangan Waktu
+                </button>
+                <button onclick="startGameMode(6)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-purple-300 text-center font-bold text-purple-900 transition hover:scale-105">
+                    <div class="text-3xl mb-1">👾</div>
+                    Boss Edukasi
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 5: GAMEPLAY SCREEN -->
+        <div id="screen-game" class="hidden flex-1 flex flex-col h-full relative">
+            <!-- Game HUD -->
+            <div class="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-md flex justify-between items-center mb-3 border-2 border-white">
+                <div class="flex items-center gap-3">
+                    <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1.5 rounded-xl text-sm">⏸️ Jeda</button>
+                    <button onclick="router.navigate('worlds')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-sm hidden sm:block">🌍 Pilih Dunia</button>
+                    <div class="font-bold text-indigo-900 text-sm sm:text-base">Skor: <span id="game-score" class="text-indigo-600 font-extrabold text-lg">0</span></div>
+                </div>
+                <div class="bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-sm sm:text-base text-center flex-1 mx-2 truncate" id="game-instruction">
+                    Cari angka 5!
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="font-bold text-slate-700 text-sm">Waktu: <span id="game-timer" class="text-rose-600">60</span>s</div>
+                </div>
+            </div>
+
+            <!-- Game Arena (Interactive Canvas Area) -->
+            <div id="game-arena" class="flex-1 bg-gradient-to-b from-sky-200 to-indigo-200 rounded-3xl shadow-inner relative overflow-hidden border-4 border-white/60 min-h-[400px] cursor-crosshair">
+                <!-- Targets spawned dynamically here -->
+            </div>
+        </div>
+
+        <!-- SCREEN 6: RESULT SCREEN -->
+        <div id="screen-result" class="hidden flex-1 flex flex-col items-center justify-center py-8">
+            <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-md text-center border-4 border-white pop-in">
+                <div class="text-7xl mb-3">🎉</div>
+                <h2 class="text-3xl font-extrabold text-indigo-900 mb-2">Hebat Sekali!</h2>
+                <p class="text-slate-600 mb-6 font-medium">Kamu berhasil menyelesaikan tantangan dengan gemilang!</p>
+                
+                <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-200 space-y-2">
+                    <div class="flex justify-between font-bold text-slate-700">
+                        <span>Bintang Didapat:</span>
+                        <span id="result-stars" class="text-amber-500 text-xl">⭐⭐⭐</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-700">
+                        <span>Skor Akhir:</span>
+                        <span id="result-score" class="text-indigo-600 text-xl">120</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-700">
+                        <span>Ketepatan:</span>
+                        <span id="result-accuracy" class="text-emerald-600 text-xl">95%</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="restartGame()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition">
+                        🔄 Main Lagi
+                    </button>
+                    <button onclick="router.navigate('worlds')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow transition">
+                        🌍 Pilih Dunia & Mode Lain
+                    </button>
+                    <button onclick="router.navigate('home')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-2xl shadow transition">
+                        🏠 Kembali ke Beranda
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 7: PARENT DASHBOARD -->
+        <div id="screen-parentDashboard" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">🔒 Dashboard Orang Tua</h2>
+                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+            </div>
+
+            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-6 border-4 border-white">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-900 mb-3">📊 Laporan Aktivitas Anak (<span id="parent-profile-name">Budi</span>)</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 text-center">
+                            <div class="text-2xl font-extrabold text-indigo-600" id="stat-games">12</div>
+                            <div class="text-sm font-semibold text-slate-600">Total Permainan</div>
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-center">
+                            <div class="text-2xl font-extrabold text-amber-600" id="stat-stars">45</div>
+                            <div class="text-sm font-semibold text-slate-600">Total Bintang</div>
+                        </div>
+                        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-center">
+                            <div class="text-2xl font-extrabold text-emerald-600" id="stat-time">35m</div>
+                            <div class="text-sm font-semibold text-slate-600">Waktu Bermain</div>
+                        </div>
+                        <div class="bg-pink-50 p-4 rounded-2xl border border-pink-200 text-center">
+                            <div class="text-2xl font-extrabold text-pink-600" id="stat-level">Level 5</div>
+                            <div class="text-sm font-semibold text-slate-600">Level Saat Ini</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4">
+                    <h3 class="text-lg font-bold text-indigo-900 mb-3">⏰ Batas Waktu Bermain Harian</h3>
+                    <div class="flex gap-3 flex-wrap">
+                        <button onclick="setTimeLimit(15)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">15 Menit</button>
+                        <button onclick="setTimeLimit(30)" class="time-limit-btn bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold border border-indigo-300 transition">30 Menit</button>
+                        <button onclick="setTimeLimit(45)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">45 Menit</button>
+                        <button onclick="setTimeLimit(60)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">60 Menit</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4">
+                    <h3 class="text-lg font-bold text-indigo-900 mb-3">🎚️ Tingkat Kesulitan</h3>
+                    <div class="flex gap-3">
+                        <button onclick="setDifficulty('mudah')" class="diff-btn bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold">Mudah</button>
+                        <button onclick="setDifficulty('sedang')" class="diff-btn bg-slate-100 text-slate-800 px-5 py-2 rounded-xl font-bold">Sedang</button>
+                        <button onclick="setDifficulty('sulit')" class="diff-btn bg-slate-100 text-slate-800 px-5 py-2 rounded-xl font-bold">Sulit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 8: ACHIEVEMENTS SCREEN -->
+        <div id="screen-achievements" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">🏆 Pencapaian & Piala</h2>
+                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="achievements-list">
+                <!-- Dynamic Achievements -->
+            </div>
+        </div>
+
+        <!-- SCREEN 9: WARDROBE SCREEN -->
+        <div id="screen-wardrobe" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">👕 Koleksi Kostum Karakter</h2>
+                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="wardrobe-list">
+                <!-- Dynamic Wardrobe items -->
+            </div>
+        </div>
+
+        <!-- SCREEN 10: PROGRESS SCREEN -->
+        <div id="screen-progress" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">📊 Progres Belajar Anak</h2>
+                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+            </div>
+            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-700">Mengenal Angka & Hitung</span>
+                    <span class="bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-xl">Mahir (90%)</span>
+                </div>
+                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full w-[90%] rounded-full"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-700">Pengenalan Warna & Bentuk</span>
+                    <span class="bg-blue-100 text-blue-800 font-extrabold px-3 py-1 rounded-xl">Sangat Baik (85%)</span>
+                </div>
+                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-full w-[85%] rounded-full"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-700">Bahasa & Pengetahuan Sains</span>
+                    <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-xl">Berkembang (75%)</span>
+                </div>
+                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                    <div class="bg-amber-500 h-full w-[75%] rounded-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 11: SETTINGS SCREEN -->
+        <div id="screen-settings" class="hidden flex-1 flex flex-col py-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white drop-shadow">⚙️ Pengaturan</h2>
+                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+            </div>
+            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white max-w-xl mx-auto w-full">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-700 text-lg">Musik Latar</span>
+                    <button onclick="toggleMusic()" id="setting-music" class="bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl">ON</button>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-4">
+                    <span class="font-bold text-slate-700 text-lg">Efek Suara & Narasi</span>
+                    <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl">ON</button>
+                </div>
+                <div class="border-t border-slate-200 pt-4 text-center">
+                    <p class="text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.2</p>
+                    <p class="text-sm font-bold text-indigo-900 mt-1">Dibuat oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: ADD PROFILE -->
+        <div id="modal-add-profile" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-md w-full border-4 border-indigo-200 pop-in">
+                <h3 class="text-2xl font-extrabold text-indigo-900 mb-4">Tambah Profil Anak</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nama Anak</label>
+                        <input type="text" id="input-new-name" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium" placeholder="Contoh: Siti">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Usia (1 - 11 Tahun)</label>
+                        <input type="number" id="input-new-age" min="1" max="11" value="5" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Pilih Avatar</label>
+                        <div class="flex gap-3 text-3xl">
+                            <button onclick="selectAvatar('👦')" class="avatar-opt p-2 rounded-xl bg-sky-100 border-2 border-sky-500">👦</button>
+                            <button onclick="selectAvatar('👧')" class="avatar-opt p-2 rounded-xl bg-slate-100">👧</button>
+                            <button onclick="selectAvatar('🤖')" class="avatar-opt p-2 rounded-xl bg-slate-100">🤖</button>
+                            <button onclick="selectAvatar('🧚')" class="avatar-opt p-2 rounded-xl bg-slate-100">🧚</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeAddProfileModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 font-bold py-3 rounded-2xl transition">Batal</button>
+                    <button onclick="saveNewProfile()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition">Simpan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOM MESSAGE BOX -->
+        <div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center border-4 border-amber-300 pop-in">
+                <div id="msg-icon" class="text-5xl mb-2">⭐</div>
+                <h3 id="msg-title" class="text-xl font-extrabold text-indigo-900 mb-2">Hebat Sekali!</h3>
+                <p id="msg-text" class="text-slate-600 mb-6 font-medium">Kamu berhasil mengenai target!</p>
+                <button onclick="closeMsgBox()" class="w-full bg-amber-400 hover:bg-amber-500 text-white font-extrabold py-3 rounded-2xl shadow transition">Lanjutkan</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- SOUND GENERATOR (Web Audio API) ---
+        let audioEnabled = true;
+        let musicEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.setValueAtTime(150, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        // --- APP STATE ---
+        let appState = {
+            currentScreen: 'splash',
+            activeProfileId: 0,
+            activeWorld: 'hutan',
+            activeGameMode: 1,
+            selectedAvatar: '👦',
+            profiles: [
+                { id: 0, name: 'Budi', age: 5, avatar: '👦', level: 1, stars: 15, gamesPlayed: 12, timeMinutes: 35 },
+                { id: 1, name: 'Siti', age: 8, avatar: '👧', level: 4, stars: 45, gamesPlayed: 28, timeMinutes: 50 }
+            ],
+            timeLimit: 30,
+            difficulty: 'mudah'
+        };
+
+        // --- ROUTER SYSTEM ---
+        const router = {
+            navigate: function(screenName) {
+                const screens = ['splash', 'profile', 'home', 'worlds', 'game', 'result', 'parentDashboard', 'achievements', 'wardrobe', 'progress', 'settings'];
+                screens.forEach(s => {
+                    const el = document.getElementById(`screen-${s}`);
+                    if (el) el.classList.add('hidden');
+                });
+                
+                const targetEl = document.getElementById(`screen-${screenName}`);
+                if (targetEl) targetEl.classList.remove('hidden');
+
+                const headerEl = document.getElementById('main-header');
+                if (['splash', 'profile'].includes(screenName)) {
+                    headerEl.classList.add('hidden');
+                } else {
+                    headerEl.classList.remove('hidden');
+                }
+
+                appState.currentScreen = screenName;
+                if (screenName === 'profile') renderProfiles();
+                if (screenName === 'home') updateHeader();
+                if (screenName === 'parentDashboard') updateParentDashboard();
+                if (screenName === 'achievements') renderAchievements();
+                if (screenName === 'wardrobe') renderWardrobe();
+
+                if (screenName === 'game') initGame();
+                else stopGameLoop();
+            }
+        };
+
+        // --- PROFILE MANAGEMENT ---
+        function renderProfiles() {
+            const container = document.getElementById('profiles-grid');
+            if (!container) return;
+            container.innerHTML = appState.profiles.map(p => `
+                <div onclick="selectProfile(${p.id})" class="bg-gradient-to-r from-sky-100 to-indigo-100 hover:from-sky-200 hover:to-indigo-200 p-5 rounded-2xl border-2 border-indigo-300 cursor-pointer flex items-center gap-4 shadow transition transform hover:scale-102">
+                    <span class="text-4xl">${p.avatar}</span>
+                    <div class="flex-1">
+                        <h4 class="font-extrabold text-lg text-indigo-900">${p.name}</h4>
+                        <p class="text-sm text-slate-600">Usia: ${p.age} Tahun • Level ${p.level}</p>
+                    </div>
+                    <div class="text-amber-500 font-extrabold text-lg">⭐ ${p.stars}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectProfile(id) {
+            appState.activeProfileId = id;
+            const p = appState.profiles[id];
+            const welcomeNameEl = document.getElementById('welcome-name');
+            if (welcomeNameEl) welcomeNameEl.innerText = p.name;
+            updateHeader();
+            router.navigate('home');
+        }
+
+        function updateHeader() {
+            const p = appState.profiles[appState.activeProfileId];
+            if (!p) return;
+            const avatarEl = document.getElementById('header-avatar');
+            const nameEl = document.getElementById('header-name');
+            const starsEl = document.getElementById('header-stars');
+
+            if (avatarEl) avatarEl.innerText = p.avatar;
+            if (nameEl) nameEl.innerText = p.name;
+            if (starsEl) starsEl.innerText = p.stars;
+        }
+
+        function openAddProfileModal() {
+            document.getElementById('modal-add-profile').classList.remove('hidden');
+        }
+        function closeAddProfileModal() {
+            document.getElementById('modal-add-profile').classList.add('hidden');
+        }
+        function selectAvatar(av) {
+            appState.selectedAvatar = av;
+            document.querySelectorAll('.avatar-opt').forEach(el => {
+                el.classList.remove('bg-sky-100', 'border-2', 'border-sky-500');
+                el.classList.add('bg-slate-100');
+            });
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.remove('bg-slate-100');
+                event.currentTarget.classList.add('bg-sky-100', 'border-2', 'border-sky-500');
+            }
+        }
+        function saveNewProfile() {
+            const nameInput = document.getElementById('input-new-name');
+            const ageInput = document.getElementById('input-new-age');
+            const name = (nameInput && nameInput.value) ? nameInput.value : 'Anak Hebat';
+            const age = (ageInput && ageInput.value) ? parseInt(ageInput.value) : 5;
+            const newId = appState.profiles.length;
+            appState.profiles.push({
+                id: newId,
+                name: name,
+                age: age,
+                avatar: appState.selectedAvatar,
+                level: 1,
+                stars: 5,
+                gamesPlayed: 0,
+                timeMinutes: 0
+            });
+            closeAddProfileModal();
+            renderProfiles();
+        }
+
+        // --- GAME ENGINE ---
+        let gameInterval = null;
+        let timerInterval = null;
+        let gameScore = 0;
+        let gameTimeLeft = 60;
+        let currentInstruction = "";
+        let correctTargetValue = "";
+
+        function selectWorld(world) {
+            appState.activeWorld = world;
+            router.navigate('game');
+        }
+
+        function startGameMode(mode) {
+            appState.activeGameMode = mode;
+            router.navigate('game');
+        }
+
+        function initGame() {
+            gameScore = 0;
+            gameTimeLeft = 60;
+            const scoreEl = document.getElementById('game-score');
+            const timerEl = document.getElementById('game-timer');
+            if (scoreEl) scoreEl.innerText = gameScore;
+            if (timerEl) timerEl.innerText = gameTimeLeft;
+            
+            setupLevelTask();
+            
+            const arena = document.getElementById('game-arena');
+            if (!arena) return;
+            arena.innerHTML = '';
+
+            spawnTargets();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                gameTimeLeft--;
+                const tEl = document.getElementById('game-timer');
+                if (tEl) tEl.innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                if (arena.children.length < 6) {
+                    spawnSingleTarget();
+                }
+            }, 2000);
+        }
+
+        function stopGameLoop() {
+            if (gameInterval) clearInterval(gameInterval);
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function setupLevelTask() {
+            const mode = appState.activeGameMode;
+            if (mode === 1) { // Belajar Sambil Bermain
+                const items = ['🍎 Apel', '🍌 Pisang', '🐱 Kucing', '🐶 Anjing', '🌸 Bunga'];
+                correctTargetValue = items[Math.floor(Math.random() * items.length)];
+                currentInstruction = `Sentuh target: ${correctTargetValue}`;
+            } else if (mode === 2) { // Tembak Angka
+                const num = Math.floor(Math.random() * 9) + 1;
+                correctTargetValue = num.toString();
+                currentInstruction = `Cari angka ${num}!`;
+            } else if (mode === 3) { // Hitung Cepat
+                const a = Math.floor(Math.random() * 5) + 1;
+                const b = Math.floor(Math.random() * 4) + 1;
+                correctTargetValue = (a + b).toString();
+                currentInstruction = `Berapa hasil ${a} + ${b} = ?`;
+            } else if (mode === 4) { // Cari Warna
+                const colors = ['Merah', 'Hijau', 'Biru', 'Kuning'];
+                correctTargetValue = colors[Math.floor(Math.random() * colors.length)];
+                currentInstruction = `Cari warna ${correctTargetValue}!`;
+            } else {
+                correctTargetValue = "5";
+                currentInstruction = `Selesaikan tantangan cepat!`;
+            }
+            const instrEl = document.getElementById('game-instruction');
+            if (instrEl) instrEl.innerText = currentInstruction;
+        }
+
+        function spawnTargets() {
+            const arena = document.getElementById('game-arena');
+            if (!arena) return;
+            arena.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                spawnSingleTarget();
+            }
+        }
+
+        function spawnSingleTarget() {
+            const arena = document.getElementById('game-arena');
+            if (!arena) return;
+            const el = document.createElement('div');
+            
+            const isCorrect = Math.random() < 0.3;
+            let val = "";
+            let bgClass = "bg-white/90 text-indigo-900 border-indigo-300";
+
+            if (appState.activeGameMode === 1) {
+                val = isCorrect ? correctTargetValue : ['🚗 Mobil', '⚽ Bola', '🎈 Balon'][Math.floor(Math.random()*3)];
+            } else if (appState.activeGameMode === 2) {
+                val = isCorrect ? correctTargetValue : (Math.floor(Math.random() * 9) + 1).toString();
+            } else if (appState.activeGameMode === 3) {
+                val = isCorrect ? correctTargetValue : (Math.floor(Math.random() * 10) + 1).toString();
+            } else {
+                val = isCorrect ? correctTargetValue : ['Merah', 'Hijau', 'Biru', 'Kuning'][Math.floor(Math.random()*4)];
+            }
+
+            el.className = `absolute p-4 rounded-full shadow-lg font-extrabold text-xl sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${bgClass}`;
+            el.style.left = `${Math.random() * 75 + 10}%`;
+            el.style.top = `${Math.random() * 70 + 15}%`;
+            el.innerText = val;
+
+            el.onclick = (e) => {
+                const rect = el.getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+                
+                if (val === correctTargetValue) {
+                    playSound('success');
+                    gameScore += 10;
+                    const sEl = document.getElementById('game-score');
+                    if (sEl) sEl.innerText = gameScore;
+                    showMsgBox("⭐ Hebat!", "Pintar sekali! Target tepat sasaran!");
+                    setupLevelTask();
+                } else {
+                    playSound('error');
+                    gameScore = Math.max(0, gameScore - 2);
+                    const sEl = document.getElementById('game-score');
+                    if (sEl) sEl.innerText = gameScore;
+                }
+                el.remove();
+                spawnSingleTarget();
+            };
+
+            arena.appendChild(el);
+        }
+
+        function createParticles(x, y) {
+            const arena = document.getElementById('game-arena');
+            if (!arena) return;
+            for (let i = 0; i < 8; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle text-2xl';
+                p.innerText = ['✨', '⭐', '🎈', '💖'][Math.floor(Math.random()*4)];
+                p.style.left = `${x}px`;
+                p.style.top = `${y}px`;
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 80 + 40;
+                p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+                p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+                arena.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+        }
+
+        function pauseGame() {
+            stopGameLoop();
+            showMsgBox("⏸️ Permainan Dijeda", "Tekan Lanjutkan untuk kembali bermain.");
+        }
+
+        function endGame() {
+            stopGameLoop();
+            const p = appState.profiles[appState.activeProfileId];
+            if (p) {
+                p.stars += Math.floor(gameScore / 20) + 1;
+                p.gamesPlayed += 1;
+            }
+            const resScore = document.getElementById('result-score');
+            const resStars = document.getElementById('result-stars');
+            const resAcc = document.getElementById('result-accuracy');
+            if (resScore) resScore.innerText = gameScore;
+            if (resStars) resStars.innerText = "⭐⭐⭐";
+            if (resAcc) resAcc.innerText = "94%";
+            router.navigate('result');
+        }
+
+        function restartGame() {
+            router.navigate('game');
+        }
+
+        // --- PARENT DASHBOARD & SETTINGS ---
+        function updateParentDashboard() {
+            const p = appState.profiles[appState.activeProfileId];
+            if (!p) return;
+            document.getElementById('parent-profile-name').innerText = p.name;
+            document.getElementById('stat-games').innerText = p.gamesPlayed;
+            document.getElementById('stat-stars').innerText = p.stars;
+            document.getElementById('stat-time').innerText = p.timeMinutes + "m";
+            document.getElementById('stat-level').innerText = "Level " + p.level;
+        }
+
+        function setTimeLimit(mins) {
+            appState.timeLimit = mins;
+            showMsgBox("🕒 Batas Waktu", `Waktu bermain diatur ke ${mins} menit.`);
+        }
+
+        function setDifficulty(diff) {
+            appState.difficulty = diff;
+            showMsgBox("🎚️ Tingkat Kesulitan", `Kesulitan diatur ke ${diff}.`);
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('setting-audio');
+            if (btn) btn.innerText = audioEnabled ? "ON" : "OFF";
+            const audioToggleBtn = document.getElementById('audio-toggle-btn');
+            if (audioToggleBtn) audioToggleBtn.innerText = audioEnabled ? "🔊" : "🔇";
+        }
+
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            const btn = document.getElementById('setting-music');
+            if (btn) btn.innerText = musicEnabled ? "ON" : "OFF";
+        }
+
+        // --- ACHIEVEMENTS & WARDROBE ---
+        function renderAchievements() {
+            const list = document.getElementById('achievements-list');
+            if (!list) return;
+            const achievements = [
+                { title: "Pemain Cepat", desc: "Menyelesaikan 10 target dengan cepat", icon: "⚡", unlocked: true },
+                { title: "Ahli Warna", desc: "Mengenal seluruh warna dasar", icon: "🎨", unlocked: true },
+                { title: "Raja Angka", desc: "Berhasil menembak angka 1 sampai 10", icon: "👑", unlocked: false },
+                { title: "Sahabat Hewan", desc: "Mengenal berbagai suara dan hewan", icon: "🐶", unlocked: true }
+            ];
+            list.innerHTML = achievements.map(a => `
+                <div class="bg-white/90 p-5 rounded-2xl shadow flex items-center gap-4 border-2 ${a.unlocked ? 'border-amber-300' : 'border-slate-200 opacity-60'}">
+                    <span class="text-4xl">${a.icon}</span>
+                    <div>
+                        <h4 class="font-extrabold text-indigo-900">${a.title}</h4>
+                        <p class="text-sm text-slate-600">${a.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderWardrobe() {
+            const list = document.getElementById('wardrobe-list');
+            if (!list) return;
+            const items = [
+                { name: "Kostum Robot Bimo", icon: "🤖", unlocked: true },
+                { name: "Kostum Peri Pelangi", icon: "🧚", unlocked: true },
+                { name: "Kostum Petualang", icon: "🎒", unlocked: false },
+                { name: "Kostum Astronot", icon: "🧑‍🚀", unlocked: false }
+            ];
+            list.innerHTML = items.map(i => `
+                <div class="bg-white/90 p-4 rounded-2xl shadow text-center border-2 ${i.unlocked ? 'border-pink-300' : 'border-slate-200 opacity-60'}">
+                    <div class="text-5xl mb-2">${i.icon}</div>
+                    <div class="font-bold text-slate-800 text-sm">${i.name}</div>
+                    <div class="text-xs mt-1 ${i.unlocked ? 'text-emerald-600 font-extrabold' : 'text-slate-400'}">${i.unlocked ? 'Dimiliki' : 'Terkunci'}</div>
+                </div>
+            `).join('');
+        }
+
+        // --- MODAL MESSAGE BOX ---
+        function showMsgBox(title, text) {
+            document.getElementById('msg-title').innerText = title;
+            document.getElementById('msg-text').innerText = text;
+            document.getElementById('custom-msg-modal').classList.remove('hidden');
+        }
+        function closeMsgBox() {
+            document.getElementById('custom-msg-modal').classList.add('hidden');
+        }
+
+        // Initialize Splash Screen on load
+        window.onload = function() {
+            router.navigate('splash');
+        };
+    </script>
+</body>
+</html>
