@@ -140,7 +140,7 @@
                 <h2 class="text-xl sm:text-3xl font-bold text-center text-indigo-900 mb-4">Pilih Profil Petualang Cerdas</h2>
                 
                 <div id="profiles-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                    <!-- Dynamic Profiles from Firestore -->
+                    <!-- Dynamic Profiles -->
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center border-t border-slate-200 pt-4">
@@ -278,6 +278,7 @@
                     </div>
                 </div>
                 
+                <!-- Instruction bar with responsive auto-wrapping for mobile -->
                 <div class="bg-amber-100 px-2 sm:px-3 py-1.5 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-xs sm:text-sm text-center flex-1 mx-1.5 whitespace-normal break-words leading-tight flex items-center justify-center shadow-inner" id="game-instruction">
                     Cari target yang benar!
                 </div>
@@ -461,7 +462,7 @@
                     <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
                 <div class="border-t border-slate-200 pt-3 text-center">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.8 (Firestore Enabled)</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v2.9 (Dual-Persistence Enabled)</p>
                     <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
@@ -517,7 +518,6 @@
 
         let db = null;
         let auth = null;
-        let userId = null;
 
         window.initFirebaseAndLoad = async function() {
             try {
@@ -530,56 +530,84 @@
                     } else {
                         await signInAnonymously(auth);
                     }
-                    userId = auth.currentUser?.uid || crypto.randomUUID();
                     window.appDb = db;
-                    window.appUserId = userId;
                     window.appAuth = auth;
-                    await loadProfilesFromFirestore();
+                    await loadProfilesFromFirestoreOrStorage();
                 } else {
-                    // Fallback to in-memory if no firebase config
-                    renderProfiles();
+                    loadFromLocalStorage();
                 }
             } catch (e) {
-                console.log("Firebase init fallback:", e);
-                renderProfiles();
+                console.log("Firebase init fallback to localStorage:", e);
+                loadFromLocalStorage();
             }
         };
 
-        window.loadProfilesFromFirestore = async function() {
-            if (!db || !auth || !auth.currentUser) return;
+        window.loadProfilesFromFirestoreOrStorage = async function() {
             try {
-                const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
-                const snapshot = await getDocs(profilesRef);
-                appState.profiles = [];
-                snapshot.forEach(docSnap => {
-                    appState.profiles.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                renderProfiles();
+                if (db && auth && auth.currentUser) {
+                    const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
+                    const snapshot = await getDocs(profilesRef);
+                    if (!snapshot.empty) {
+                        appState.profiles = [];
+                        snapshot.forEach(docSnap => {
+                            appState.profiles.push({ id: docSnap.id, ...docSnap.data() });
+                        });
+                        saveToLocalStorage(); // Sync with local storage
+                        renderProfiles();
+                        return;
+                    }
+                }
             } catch (e) {
-                console.log("Error loading profiles:", e);
-                renderProfiles();
+                console.log("Firestore load error, falling back to local storage:", e);
             }
+            loadFromLocalStorage();
         };
+
+        function loadFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('petualang_profiles_' + appId);
+                if (stored) {
+                    appState.profiles = JSON.parse(stored);
+                } else {
+                    appState.profiles = [];
+                }
+            } catch (e) {
+                appState.profiles = [];
+            }
+            renderProfiles();
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('petualang_profiles_' + appId, JSON.stringify(appState.profiles));
+            } catch (e) {
+                console.log("LocalStorage save error:", e);
+            }
+        }
 
         window.saveProfileToFirestore = async function(profileObj) {
-            if (!db || !auth || !auth.currentUser) return;
+            // Always save to local storage immediately for absolute reload reliability
+            saveToLocalStorage();
+
+            if (!db || !auth || !auth.currentUser) return null;
             try {
                 const profilesRef = collection(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles');
                 const docRef = await addDoc(profilesRef, profileObj);
                 return docRef.id;
             } catch (e) {
-                console.log("Error saving profile:", e);
+                console.log("Error saving profile to Firestore:", e);
             }
             return null;
         };
 
         window.updateProfileInFirestore = async function(profileId, updatedFields) {
+            saveToLocalStorage();
             if (!db || !auth || !auth.currentUser) return;
             try {
                 const profileDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profiles', profileId);
                 await updateDoc(profileDocRef, updatedFields);
             } catch (e) {
-                console.log("Error updating profile:", e);
+                console.log("Error updating profile in Firestore:", e);
             }
         };
     </script>
@@ -1180,14 +1208,16 @@
         }
 
         function updateParentDashboard() {
-            if (appState.profiles.length === 0 || appState.activeProfileId === null) return;
-            const p = appState.profiles[appState.activeProfileId];
-            if (!p) return;
-            document.getElementById('parent-profile-name').innerText = p.name;
-            document.getElementById('stat-games').innerText = p.gamesPlayed;
-            document.getElementById('stat-stars').innerText = p.stars;
-            document.getElementById('stat-time').innerText = p.timeMinutes + "m";
-            document.getElementById('stat-level').innerText = "Level " + p.level;
+            if (appState.profiles.length === 0 || appState.activeProfileId !== null) {
+                const p = appState.profiles[appState.activeProfileId];
+                if (p) {
+                    document.getElementById('parent-profile-name').innerText = p.name;
+                    document.getElementById('stat-games').innerText = p.gamesPlayed;
+                    document.getElementById('stat-stars').innerText = p.stars;
+                    document.getElementById('stat-time').innerText = p.timeMinutes + "m";
+                    document.getElementById('stat-level').innerText = "Level " + p.level;
+                }
+            }
         }
 
         function setTimeLimit(mins) {
@@ -1300,7 +1330,7 @@
             if (typeof window.initFirebaseAndLoad === 'function') {
                 window.initFirebaseAndLoad();
             } else {
-                renderProfiles();
+                loadFromLocalStorage();
             }
             router.navigate('splash');
         };
