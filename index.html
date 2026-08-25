@@ -2,439 +2,475 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Petualangan Tembak Cerdas - Game Edukasi Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Fredoka', 'Nunito', sans-serif;
             user-select: none;
+            -webkit-user-select: none;
             touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
         .float-anim {
             animation: float 3s ease-in-out infinite;
         }
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(2deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
         }
         .pulse-soft {
             animation: pulseSoft 2s infinite;
         }
         @keyframes pulseSoft {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.04); }
         }
         .pop-in {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
         .particle {
             position: absolute;
             pointer-events: none;
-            animation: particleAnim 0.8s ease-out forwards;
+            animation: particleAnim 0.7s ease-out forwards;
         }
         @keyframes particleAnim {
             0% { transform: translate(0, 0) scale(1); opacity: 1; }
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 9999px;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-sky-400 via-indigo-300 to-pink-300 min-h-screen text-slate-800 overflow-x-hidden flex flex-col justify-between">
+<body class="bg-gradient-to-br from-sky-400 via-indigo-300 to-pink-300 text-slate-800 flex flex-col justify-between">
 
-    <div id="app" class="w-full max-w-5xl mx-auto flex-1 flex flex-col p-4 relative">
+    <div id="app" class="w-full h-full max-w-5xl mx-auto flex flex-col p-2 sm:p-4 relative overflow-y-auto">
         
-        <!-- Top Navigation / Header (Hidden on Splash) -->
-        <header id="main-header" class="hidden flex justify-between items-center bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl shadow-lg mb-4 border-2 border-white">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 sm:px-4 py-2 rounded-xl shadow transition transform active:scale-95 flex items-center gap-1.5 text-sm sm:text-base">
-                    🏠 Beranda
+        <header id="main-header" class="hidden flex justify-between items-center bg-white/90 backdrop-blur-md px-3 sm:px-6 py-2.5 rounded-2xl shadow-lg mb-2 sm:mb-4 border-2 border-white shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-2.5 sm:px-4 py-2 rounded-xl shadow transition transform active:scale-95 flex items-center gap-1 text-xs sm:text-base">
+                    🏠 <span class="hidden xs:inline">Beranda</span>
                 </button>
-                <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-3 py-2 rounded-xl shadow transition text-xs sm:text-sm flex items-center gap-1.5 border border-sky-300" title="Ganti Profil">
+                <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-2.5 py-1.5 sm:py-2 rounded-xl shadow transition text-xs sm:text-sm flex items-center gap-1 border border-sky-300" title="Ganti Profil">
                     <span id="header-avatar">👦</span>
-                    <span id="header-name" class="font-bold">Budi</span>
-                    <span class="text-xs bg-sky-200 px-1.5 py-0.5 rounded ml-1">Ganti</span>
+                    <span id="header-name" class="font-bold truncate max-w-[80px] sm:max-w-none">Budi</span>
+                    <span class="text-[10px] sm:text-xs bg-sky-200 px-1 py-0.5 rounded ml-0.5">Ganti</span>
                 </button>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="hidden sm:flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 text-indigo-900 font-bold text-sm">
-                    ⭐ <span id="header-stars">15</span> Bintang
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <div class="hidden xs:flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1.5 rounded-xl border border-indigo-200 text-indigo-900 font-bold text-xs sm:text-sm">
+                    ⭐ <span id="header-stars">15</span>
                 </div>
-                <button onclick="router.navigate('parentDashboard')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold px-3 py-2 rounded-xl shadow text-sm transition flex items-center gap-1">
-                    ⚙️ Ortu
+                <button onclick="router.navigate('parentDashboard')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold px-2.5 sm:px-3 py-2 rounded-xl shadow text-xs sm:text-sm transition flex items-center gap-1">
+                    ⚙️ <span class="hidden sm:inline">Ortu</span>
                 </button>
-                <button onclick="toggleAudio()" id="audio-toggle-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-2.5 rounded-xl shadow transition">
+                <button onclick="toggleAudio()" id="audio-toggle-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-2 sm:p-2.5 rounded-xl shadow transition text-xs">
                     🔊
                 </button>
             </div>
         </header>
 
-        <!-- SCREEN 1: SPLASH SCREEN -->
-        <div id="screen-splash" class="flex-1 flex flex-col items-center justify-center text-center py-12">
-            <div class="float-anim mb-4 text-8xl drop-shadow-xl">🚀</div>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white drop-shadow-md mb-2">Petualangan Tembak Cerdas</h1>
-            <p class="text-lg md:text-xl text-white/90 font-medium mb-6 max-w-lg">“Bidik, Belajar, dan Jadi Pintar! Bermain sambil belajar untuk anak usia 1–11 tahun.”</p>
+        <div id="screen-splash" class="flex-1 flex flex-col items-center justify-center text-center py-6 my-auto">
+            <div class="float-anim mb-4 text-6xl sm:text-8xl drop-shadow-xl">
+                <!-- 3D Toy Blaster SVG Icon -->
+                <svg class="w-24 h-24 sm:w-32 sm:h-32 mx-auto drop-shadow-2xl" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 55L45 45L75 50L85 65L70 75L40 70L20 55Z" fill="url(#grad1)"/>
+                    <path d="M40 70L30 85H45L55 70H40Z" fill="#F59E0B"/>
+                    <circle cx="65" cy="58" r="12" fill="#38BDF8" stroke="#ffffff" stroke-width="3"/>
+                    <circle cx="65" cy="58" r="6" fill="#F43F5E"/>
+                    <path d="M75 50L90 40L95 50L85 65L75 50Z" fill="#A855F7"/>
+                    <defs>
+                        <linearGradient id="grad1" x1="20" y1="45" x2="85" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#3B82F6"/>
+                            <stop offset="1" stop-color="#8B5CF6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-md mb-2 px-2">Petualangan Tembak Cerdas</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-white/95 font-medium mb-6 max-w-md px-4">“Bidik, Belajar, dan Jadi Pintar! Bermain sambil belajar untuk anak usia 1–11 tahun.”</p>
             
-            <button onclick="router.navigate('profile')" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-2xl px-10 py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6">
-                ✨ Mulai Bermain ✨
+            <button onclick="router.navigate('profile')" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-extrabold text-xl sm:text-2xl px-8 sm:px-10 py-4 sm:py-5 rounded-3xl shadow-xl transform transition hover:scale-105 active:scale-95 border-4 border-white/50 pulse-soft mb-6 flex items-center gap-3 mx-auto">
+                <span>🔫</span> Mulai Bermain
             </button>
 
-            <!-- Developer Credit Badge -->
-            <div class="bg-white/30 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/50 shadow-md text-white font-bold text-sm sm:text-base flex items-center gap-2">
+            <!-- Developer Credit Badge PCENK -->
+            <div class="bg-white/40 backdrop-blur-md px-4 sm:px-5 py-2 rounded-2xl border border-white/50 shadow-md text-white font-bold text-xs sm:text-base flex items-center gap-2">
                 🎮 Dibuat dengan ❤️ oleh <span class="bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-xl font-extrabold shadow">PCENK</span>
             </div>
         </div>
 
-        <!-- SCREEN 2: PROFILE SELECTION / LOGIN -->
-        <div id="screen-profile" class="hidden flex-1 flex flex-col items-center justify-center py-8">
-            <div class="bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-4 border-white relative">
-                <div class="flex justify-between items-center mb-4">
-                    <button onclick="router.navigate('splash')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-sm transition flex items-center gap-1">
-                        ⬅️ Kembali ke Awal
+        <div id="screen-profile" class="hidden flex-1 flex flex-col items-center justify-center py-4 my-auto">
+            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl border-4 border-white relative max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4 gap-2">
+                    <button onclick="router.navigate('splash')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1">
+                        ⬅️ Awal
                     </button>
-                    <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm transition flex items-center gap-1">
-                        🎮 Lanjut ke Beranda
+                    <button onclick="router.navigate('home')" class="bg-amber-400 hover:bg-amber-500 text-white font-bold px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1">
+                        🎮 Beranda ➡️
                     </button>
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-bold text-center text-indigo-900 mb-6">Pilih Profil Petualang Cerdas</h2>
+                <h2 class="text-xl sm:text-3xl font-bold text-center text-indigo-900 mb-4">Pilih Profil Petualang Cerdas</h2>
                 
-                <div id="profiles-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <!-- Dynamic Profile Cards -->
+                <div id="profiles-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    <!-- Dynamic Profiles -->
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-3 justify-center border-t border-slate-200 pt-6">
-                    <button onclick="openAddProfileModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2">
-                        ➕ Tambah Profil Baru
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center border-t border-slate-200 pt-4">
+                    <button onclick="openAddProfileModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                        ➕ Tambah Profil
                     </button>
-                    <button onclick="router.navigate('parentDashboard')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2">
-                        🔒 Dashboard Orang Tua
+                    <button onclick="router.navigate('parentDashboard')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                        🔒 Ortu
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 3: HOME SCREEN -->
-        <div id="screen-home" class="hidden flex-1 flex flex-col justify-center py-4">
-            <div class="text-center mb-6">
-                <div class="inline-block bg-white/80 backdrop-blur-md px-6 py-2 rounded-full shadow border border-white text-indigo-900 font-bold mb-2">
+        <div id="screen-home" class="hidden flex-1 flex flex-col justify-center py-2 my-auto">
+            <div class="text-center mb-4">
+                <div class="inline-block bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow border border-white text-indigo-900 font-bold text-xs sm:text-base mb-2">
                     🌟 Selamat Datang, <span id="welcome-name">Budi</span>!
                 </div>
-                <h2 class="text-3xl font-extrabold text-white drop-shadow mb-3">Pilih Menu Petualangan</h2>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white drop-shadow mb-3">Pilih Menu Petualangan</h2>
                 
-                <!-- Quick Navigation Buttons -->
-                <div class="flex justify-center gap-2 flex-wrap mb-2">
-                    <button onclick="router.navigate('profile')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition flex items-center gap-2">
-                        👥 Pilihan Halaman Profil
+                <!-- Explicit Navigation Buttons for Profile and Splash with Back capability -->
+                <div class="flex justify-center gap-2 flex-wrap mb-2 px-2">
+                    <button onclick="router.navigate('profile')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl shadow text-xs sm:text-sm transition flex items-center gap-1.5">
+                        👥 Ganti Profil
                     </button>
-                    <button onclick="router.navigate('worlds')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition flex items-center gap-2">
-                        🎮 Mulai Permainan
+                    <button onclick="router.navigate('splash')" class="bg-slate-500 hover:bg-slate-600 text-white font-bold px-3.5 py-2 rounded-xl shadow text-xs sm:text-sm transition flex items-center gap-1.5">
+                        ⬅️ Kembali ke Awal
                     </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto w-full">
-                <button onclick="router.navigate('worlds')" class="bg-gradient-to-br from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">🎮</span>
-                    <span class="font-extrabold text-lg">Mulai Bermain</span>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto w-full">
+                <!-- Mulai Bermain: Instant Random Quick Play Launcher -->
+                <button onclick="startQuickPlay()" class="bg-gradient-to-br from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">🔫</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Mulai Bermain</span>
+                    <span class="text-[10px] sm:text-xs bg-emerald-700/50 px-2 py-0.5 rounded-full">Main Cepat Acak</span>
                 </button>
-                <button onclick="router.navigate('worlds')" class="bg-gradient-to-br from-blue-400 to-indigo-600 hover:from-blue-500 hover:to-indigo-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">🌍</span>
-                    <span class="font-extrabold text-lg">Pilih Dunia</span>
+                <!-- Pilih Dunia: Interactive World & Mode Explorer Map -->
+                <button onclick="router.navigate('worlds')" class="bg-gradient-to-br from-blue-400 to-indigo-600 hover:from-blue-500 hover:to-indigo-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">🌍</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Pilih Dunia</span>
+                    <span class="text-[10px] sm:text-xs bg-blue-700/50 px-2 py-0.5 rounded-full">Peta & 6 Mode</span>
                 </button>
-                <button onclick="router.navigate('achievements')" class="bg-gradient-to-br from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">🏆</span>
-                    <span class="font-extrabold text-lg">Pencapaian</span>
+                <button onclick="router.navigate('achievements')" class="bg-gradient-to-br from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">🏆</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Pencapaian</span>
                 </button>
-                <button onclick="router.navigate('wardrobe')" class="bg-gradient-to-br from-pink-400 to-rose-600 hover:from-pink-500 hover:to-rose-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">👕</span>
-                    <span class="font-extrabold text-lg">Koleksi Kostum</span>
+                <button onclick="router.navigate('wardrobe')" class="bg-gradient-to-br from-pink-400 to-rose-600 hover:from-pink-500 hover:to-rose-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">👕</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Koleksi Kostum</span>
                 </button>
-                <button onclick="router.navigate('progress')" class="bg-gradient-to-br from-purple-400 to-indigo-600 hover:from-purple-500 hover:to-indigo-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">📊</span>
-                    <span class="font-extrabold text-lg">Progres Belajar</span>
+                <button onclick="router.navigate('progress')" class="bg-gradient-to-br from-purple-400 to-indigo-600 hover:from-purple-500 hover:to-indigo-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">📊</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Progres Belajar</span>
                 </button>
-                <button onclick="router.navigate('settings')" class="bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-3 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
-                    <span class="text-5xl">⚙️</span>
-                    <span class="font-extrabold text-lg">Pengaturan</span>
+                <button onclick="router.navigate('settings')" class="bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700 text-white p-4 sm:p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95 border-4 border-white/40">
+                    <span class="text-4xl sm:text-5xl">⚙️</span>
+                    <span class="font-extrabold text-sm sm:text-lg">Pengaturan</span>
                 </button>
             </div>
         </div>
 
-        <!-- SCREEN 4: WORLD & MODE SELECTION -->
-        <div id="screen-worlds" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">🌍 Pilih Dunia & Mode</h2>
-                <div class="flex gap-2">
-                    <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-3 py-2 rounded-xl shadow text-sm">👥 Pilih Profil</button>
-                    <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">🏠 Beranda</button>
+        <div id="screen-worlds" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">🌍 Peta Dunia & Mode Edukasi</h2>
+                <div class="flex gap-1.5">
+                    <button onclick="router.navigate('profile')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-2.5 py-1.5 rounded-xl shadow text-xs sm:text-sm">👥 Profil</button>
+                    <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">🏠 Beranda</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div onclick="selectWorld('hutan')" class="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
-                    <span class="text-6xl">🌳</span>
+            <p class="text-white/90 text-xs sm:text-sm font-medium mb-3">Pilih dunia khusus dan mode permainan di bawah untuk memulai petualangan belajar!</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div onclick="selectWorld('hutan')" class="world-card bg-gradient-to-r from-emerald-500 to-green-600 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
+                    <span class="text-4xl sm:text-5xl">🌳</span>
                     <div>
-                        <h3 class="text-2xl font-extrabold">Dunia Hutan Ceria</h3>
-                        <p class="text-emerald-100 text-sm">Target: Buah, Hewan, Bunga & Warna</p>
+                        <h3 class="text-lg sm:text-xl font-extrabold">Dunia Hutan Ceria</h3>
+                        <p class="text-emerald-100 text-xs sm:text-sm">Target: Apel, Kucing, Kelinci, Bunga, Daun</p>
                     </div>
                 </div>
-                <div onclick="selectWorld('laut')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
-                    <span class="text-6xl">🌊</span>
+                <div onclick="selectWorld('laut')" class="world-card bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
+                    <span class="text-4xl sm:text-5xl">🌊</span>
                     <div>
-                        <h3 class="text-2xl font-extrabold">Dunia Laut Ajaib</h3>
-                        <p class="text-cyan-100 text-sm">Target: Ikan, Angka & Hewan Laut</p>
+                        <h3 class="text-lg sm:text-xl font-extrabold">Dunia Laut Ajaib</h3>
+                        <p class="text-cyan-100 text-xs sm:text-sm">Target: Ikan, Gurita, Lumba-lumba, Kerang</p>
                     </div>
                 </div>
-                <div onclick="selectWorld('angkasa')" class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
-                    <span class="text-6xl">🚀</span>
+                <div onclick="selectWorld('angkasa')" class="world-card bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
+                    <span class="text-4xl sm:text-5xl">🚀</span>
                     <div>
-                        <h3 class="text-2xl font-extrabold">Dunia Luar Angkasa</h3>
-                        <p class="text-indigo-100 text-sm">Target: Planet, Bintang & Sains</p>
+                        <h3 class="text-lg sm:text-xl font-extrabold">Dunia Luar Angkasa</h3>
+                        <p class="text-indigo-100 text-xs sm:text-sm">Target: Roket, Planet, Bintang, Meteor</p>
                     </div>
                 </div>
-                <div onclick="selectWorld('permen')" class="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-6 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-4">
-                    <span class="text-6xl">🍭</span>
+                <div onclick="selectWorld('permen')" class="world-card bg-gradient-to-r from-pink-500 to-rose-600 text-white p-4 sm:p-5 rounded-3xl shadow-xl cursor-pointer transform transition hover:scale-102 border-4 border-white/50 flex items-center gap-3">
+                    <span class="text-4xl sm:text-5xl">🍭</span>
                     <div>
-                        <h3 class="text-2xl font-extrabold">Dunia Permen</h3>
-                        <p class="text-pink-100 text-sm">Target: Permen, Donat & Kecepatan</p>
+                        <h3 class="text-lg sm:text-xl font-extrabold">Dunia Permen</h3>
+                        <p class="text-pink-100 text-xs sm:text-sm">Target: Permen, Donat, Cupcake, Cokelat</p>
                     </div>
                 </div>
             </div>
 
-            <h3 class="text-2xl font-bold text-white drop-shadow mb-3">🎯 Pilih Mode Permainan</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <button onclick="startGameMode(1)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-emerald-300 text-center font-bold text-emerald-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">🎮</div>
+            <h3 class="text-xl sm:text-2xl font-bold text-white drop-shadow mb-3">🎯 Pilih Mode Permainan Spesifik</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-2">
+                <button onclick="startGameMode(1)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-emerald-300 text-center font-bold text-emerald-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">🎮</div>
                     Belajar Sambil Bermain
                 </button>
-                <button onclick="startGameMode(2)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-blue-300 text-center font-bold text-blue-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">🔢</div>
+                <button onclick="startGameMode(2)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-blue-300 text-center font-bold text-blue-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">🔢</div>
                     Tembak Angka
                 </button>
-                <button onclick="startGameMode(3)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-indigo-300 text-center font-bold text-indigo-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">➕</div>
+                <button onclick="startGameMode(3)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-indigo-300 text-center font-bold text-indigo-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">➕</div>
                     Hitung Cepat
                 </button>
-                <button onclick="startGameMode(4)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-pink-300 text-center font-bold text-pink-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">🎨</div>
+                <button onclick="startGameMode(4)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-pink-300 text-center font-bold text-pink-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">🎨</div>
                     Cari Warna
                 </button>
-                <button onclick="startGameMode(5)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-amber-300 text-center font-bold text-amber-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">⏱️</div>
+                <button onclick="startGameMode(5)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-amber-300 text-center font-bold text-amber-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">⏱️</div>
                     Tantangan Waktu
                 </button>
-                <button onclick="startGameMode(6)" class="bg-white/90 hover:bg-white p-4 rounded-2xl shadow-lg border-2 border-purple-300 text-center font-bold text-purple-900 transition hover:scale-105">
-                    <div class="text-3xl mb-1">👾</div>
+                <button onclick="startGameMode(6)" class="bg-white/95 hover:bg-white p-3 sm:p-4 rounded-2xl shadow-lg border-2 border-purple-300 text-center font-bold text-purple-900 transition hover:scale-105 text-xs sm:text-sm">
+                    <div class="text-2xl sm:text-3xl mb-1">👾</div>
                     Boss Edukasi
                 </button>
             </div>
         </div>
 
-        <!-- SCREEN 5: GAMEPLAY SCREEN -->
         <div id="screen-game" class="hidden flex-1 flex flex-col h-full relative">
             <!-- Game HUD -->
-            <div class="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-md flex justify-between items-center mb-3 border-2 border-white">
-                <div class="flex items-center gap-3">
-                    <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1.5 rounded-xl text-sm">⏸️ Jeda</button>
-                    <button onclick="router.navigate('worlds')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-sm hidden sm:block">🌍 Pilih Dunia</button>
-                    <div class="font-bold text-indigo-900 text-sm sm:text-base">Skor: <span id="game-score" class="text-indigo-600 font-extrabold text-lg">0</span></div>
+            <div class="bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl shadow-md flex justify-between items-center mb-2 border-2 border-white shrink-0">
+                <div class="flex items-center gap-2">
+                    <button onclick="pauseGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs sm:text-sm">⏸️ Jeda</button>
+                    <button onclick="router.navigate('worlds')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-xs sm:text-sm hidden sm:block">🌍 Dunia</button>
+                    <div class="font-bold text-indigo-900 text-xs sm:text-base flex items-center gap-1">
+                        <span>⭐</span> Skor: <span id="game-score" class="text-indigo-600 font-extrabold text-sm sm:text-lg">0</span>
+                    </div>
                 </div>
-                <div class="bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-sm sm:text-base text-center flex-1 mx-2 truncate" id="game-instruction">
-                    Cari angka 5!
+                <div class="bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 text-amber-900 font-extrabold text-xs sm:text-sm text-center flex-1 mx-2 truncate" id="game-instruction">
+                    Cari target yang benar!
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="font-bold text-slate-700 text-sm">Waktu: <span id="game-timer" class="text-rose-600">60</span>s</div>
+                <div class="flex items-center gap-2">
+                    <div class="font-bold text-slate-700 text-xs sm:text-sm">Waktu: <span id="game-timer" class="text-rose-600">60</span>s</div>
                 </div>
             </div>
 
-            <!-- Game Arena (Interactive Canvas Area) -->
-            <div id="game-arena" class="flex-1 bg-gradient-to-b from-sky-200 to-indigo-200 rounded-3xl shadow-inner relative overflow-hidden border-4 border-white/60 min-h-[400px] cursor-crosshair">
-                <!-- Targets spawned dynamically here -->
+            <!-- Game Arena (Interactive Canvas Area with Synchronized Targets & No Gun Icons) -->
+            <div id="game-arena" class="flex-1 bg-gradient-to-b from-sky-200 to-indigo-200 rounded-3xl shadow-inner relative overflow-hidden border-4 border-white/60 min-h-[320px] sm:min-h-[420px] cursor-pointer touch-none">
+                <!-- Synchronized targets spawned here -->
             </div>
         </div>
 
-        <!-- SCREEN 6: RESULT SCREEN -->
-        <div id="screen-result" class="hidden flex-1 flex flex-col items-center justify-center py-8">
-            <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-md text-center border-4 border-white pop-in">
-                <div class="text-7xl mb-3">🎉</div>
-                <h2 class="text-3xl font-extrabold text-indigo-900 mb-2">Hebat Sekali!</h2>
-                <p class="text-slate-600 mb-6 font-medium">Kamu berhasil menyelesaikan tantangan dengan gemilang!</p>
+        <div id="screen-result" class="hidden flex-1 flex flex-col items-center justify-center py-4 my-auto">
+            <div class="bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-md text-center border-4 border-white pop-in">
+                <div class="text-6xl sm:text-7xl mb-2">🎉</div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-indigo-900 mb-1">Hebat Sekali!</h2>
+                <p class="text-slate-600 mb-4 font-medium text-xs sm:text-sm">Kamu berhasil menyelesaikan tantangan dengan gemilang!</p>
                 
-                <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-200 space-y-2">
+                <div class="bg-indigo-50 p-3 sm:p-4 rounded-2xl mb-5 border border-indigo-200 space-y-2 text-xs sm:text-sm">
                     <div class="flex justify-between font-bold text-slate-700">
                         <span>Bintang Didapat:</span>
-                        <span id="result-stars" class="text-amber-500 text-xl">⭐⭐⭐</span>
+                        <span id="result-stars" class="text-amber-500 text-lg sm:text-xl">⭐⭐⭐</span>
                     </div>
                     <div class="flex justify-between font-bold text-slate-700">
                         <span>Skor Akhir:</span>
-                        <span id="result-score" class="text-indigo-600 text-xl">120</span>
+                        <span id="result-score" class="text-indigo-600 text-lg sm:text-xl">120</span>
                     </div>
                     <div class="flex justify-between font-bold text-slate-700">
                         <span>Ketepatan:</span>
-                        <span id="result-accuracy" class="text-emerald-600 text-xl">95%</span>
+                        <span id="result-accuracy" class="text-emerald-600 text-lg sm:text-xl">95%</span>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-3">
-                    <button onclick="restartGame()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition">
+                <div class="flex flex-col gap-2.5">
+                    <button onclick="restartGame()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition text-sm sm:text-base">
                         🔄 Main Lagi
                     </button>
-                    <button onclick="router.navigate('worlds')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow transition">
+                    <button onclick="router.navigate('worlds')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow transition text-sm sm:text-base">
                         🌍 Pilih Dunia & Mode Lain
                     </button>
-                    <button onclick="router.navigate('home')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-2xl shadow transition">
+                    <button onclick="router.navigate('home')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-2xl shadow transition text-sm sm:text-base">
                         🏠 Kembali ke Beranda
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 7: PARENT DASHBOARD -->
-        <div id="screen-parentDashboard" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">🔒 Dashboard Orang Tua</h2>
-                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+        <div id="screen-parentDashboard" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[88vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">🔒 Dashboard Orang Tua</h2>
+                <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
             </div>
 
-            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-6 border-4 border-white">
+            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white">
                 <div>
-                    <h3 class="text-xl font-bold text-indigo-900 mb-3">📊 Laporan Aktivitas Anak (<span id="parent-profile-name">Budi</span>)</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 text-center">
-                            <div class="text-2xl font-extrabold text-indigo-600" id="stat-games">12</div>
-                            <div class="text-sm font-semibold text-slate-600">Total Permainan</div>
+                    <h3 class="text-lg sm:text-xl font-bold text-indigo-900 mb-2">📊 Aktivitas Anak (<span id="parent-profile-name">Budi</span>)</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-200 text-center">
+                            <div class="text-xl sm:text-2xl font-extrabold text-indigo-600" id="stat-games">12</div>
+                            <div class="text-xs sm:text-sm font-semibold text-slate-600">Total Permainan</div>
                         </div>
-                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-center">
-                            <div class="text-2xl font-extrabold text-amber-600" id="stat-stars">45</div>
-                            <div class="text-sm font-semibold text-slate-600">Total Bintang</div>
+                        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-center">
+                            <div class="text-xl sm:text-2xl font-extrabold text-amber-600" id="stat-stars">45</div>
+                            <div class="text-xs sm:text-sm font-semibold text-slate-600">Total Bintang</div>
                         </div>
-                        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-center">
-                            <div class="text-2xl font-extrabold text-emerald-600" id="stat-time">35m</div>
-                            <div class="text-sm font-semibold text-slate-600">Waktu Bermain</div>
+                        <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
+                            <div class="text-xl sm:text-2xl font-extrabold text-emerald-600" id="stat-time">35m</div>
+                            <div class="text-xs sm:text-sm font-semibold text-slate-600">Waktu Bermain</div>
                         </div>
-                        <div class="bg-pink-50 p-4 rounded-2xl border border-pink-200 text-center">
-                            <div class="text-2xl font-extrabold text-pink-600" id="stat-level">Level 5</div>
-                            <div class="text-sm font-semibold text-slate-600">Level Saat Ini</div>
+                        <div class="bg-pink-50 p-3 rounded-2xl border border-pink-200 text-center">
+                            <div class="text-xl sm:text-2xl font-extrabold text-pink-600" id="stat-level">Level 5</div>
+                            <div class="text-xs sm:text-sm font-semibold text-slate-600">Level Saat Ini</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-200 pt-4">
-                    <h3 class="text-lg font-bold text-indigo-900 mb-3">⏰ Batas Waktu Bermain Harian</h3>
-                    <div class="flex gap-3 flex-wrap">
-                        <button onclick="setTimeLimit(15)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">15 Menit</button>
-                        <button onclick="setTimeLimit(30)" class="time-limit-btn bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold border border-indigo-300 transition">30 Menit</button>
-                        <button onclick="setTimeLimit(45)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">45 Menit</button>
-                        <button onclick="setTimeLimit(60)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-slate-300 transition">60 Menit</button>
+                <div class="border-t border-slate-200 pt-3">
+                    <h3 class="text-base sm:text-lg font-bold text-indigo-900 mb-2">⏰ Batas Waktu Harian</h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="setTimeLimit(15)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-3 py-1.5 rounded-xl font-bold border border-slate-300 text-xs sm:text-sm transition">15 Menit</button>
+                        <button onclick="setTimeLimit(30)" class="time-limit-btn bg-indigo-600 text-white px-3 py-1.5 rounded-xl font-bold border border-indigo-300 text-xs sm:text-sm transition">30 Menit</button>
+                        <button onclick="setTimeLimit(45)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-3 py-1.5 rounded-xl font-bold border border-slate-300 text-xs sm:text-sm transition">45 Menit</button>
+                        <button onclick="setTimeLimit(60)" class="time-limit-btn bg-slate-100 hover:bg-indigo-500 hover:text-white px-3 py-1.5 rounded-xl font-bold border border-slate-300 text-xs sm:text-sm transition">60 Menit</button>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-200 pt-4">
-                    <h3 class="text-lg font-bold text-indigo-900 mb-3">🎚️ Tingkat Kesulitan</h3>
-                    <div class="flex gap-3">
-                        <button onclick="setDifficulty('mudah')" class="diff-btn bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold">Mudah</button>
-                        <button onclick="setDifficulty('sedang')" class="diff-btn bg-slate-100 text-slate-800 px-5 py-2 rounded-xl font-bold">Sedang</button>
-                        <button onclick="setDifficulty('sulit')" class="diff-btn bg-slate-100 text-slate-800 px-5 py-2 rounded-xl font-bold">Sulit</button>
+                <div class="border-t border-slate-200 pt-3">
+                    <h3 class="text-base sm:text-lg font-bold text-indigo-900 mb-2">🎚️ Tingkat Kesulitan</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setDifficulty('mudah')" class="diff-btn bg-emerald-600 text-white px-4 py-1.5 rounded-xl font-bold text-xs sm:text-sm">Mudah</button>
+                        <button onclick="setDifficulty('sedang')" class="diff-btn bg-slate-100 text-slate-800 px-4 py-1.5 rounded-xl font-bold text-xs sm:text-sm">Sedang</button>
+                        <button onclick="setDifficulty('sulit')" class="diff-btn bg-slate-100 text-slate-800 px-4 py-1.5 rounded-xl font-bold text-xs sm:text-sm">Sulit</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 8: ACHIEVEMENTS SCREEN -->
-        <div id="screen-achievements" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">🏆 Pencapaian & Piala</h2>
-                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+        <div id="screen-achievements" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[88vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">🏆 Pencapaian & Piala</h2>
+                <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="achievements-list">
-                <!-- Dynamic Achievements -->
-            </div>
-        </div>
-
-        <!-- SCREEN 9: WARDROBE SCREEN -->
-        <div id="screen-wardrobe" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">👕 Koleksi Kostum Karakter</h2>
-                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="wardrobe-list">
-                <!-- Dynamic Wardrobe items -->
+            <p class="text-white/90 text-xs sm:text-sm font-medium mb-3">Klik tombol "Klaim" pada pencapaian yang terbuka untuk mendapatkan bonus bintang!</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="achievements-list">
+                <!-- Dynamic Interactive Achievements -->
             </div>
         </div>
 
-        <!-- SCREEN 10: PROGRESS SCREEN -->
-        <div id="screen-progress" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">📊 Progres Belajar Anak</h2>
-                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+        <div id="screen-wardrobe" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[88vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">👕 Koleksi Kostum Karakter</h2>
+                <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
             </div>
-            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="wardrobe-list">
+                <!-- Wardrobe Items -->
+            </div>
+        </div>
+
+        <div id="screen-progress" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[88vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">📊 Progres Belajar Anak</h2>
+                <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
+            </div>
+            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-xl space-y-3 border-4 border-white text-xs sm:text-base">
                 <div class="flex justify-between items-center">
                     <span class="font-bold text-slate-700">Mengenal Angka & Hitung</span>
-                    <span class="bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-xl">Mahir (90%)</span>
+                    <span class="bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-1 rounded-xl text-xs sm:text-sm">Mahir (90%)</span>
                 </div>
-                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden">
                     <div class="bg-emerald-500 h-full w-[90%] rounded-full"></div>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="font-bold text-slate-700">Pengenalan Warna & Bentuk</span>
-                    <span class="bg-blue-100 text-blue-800 font-extrabold px-3 py-1 rounded-xl">Sangat Baik (85%)</span>
+                    <span class="bg-blue-100 text-blue-800 font-extrabold px-2.5 py-1 rounded-xl text-xs sm:text-sm">Sangat Baik (85%)</span>
                 </div>
-                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden">
                     <div class="bg-blue-500 h-full w-[85%] rounded-full"></div>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="font-bold text-slate-700">Bahasa & Pengetahuan Sains</span>
-                    <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-xl">Berkembang (75%)</span>
+                    <span class="bg-amber-100 text-amber-800 font-extrabold px-2.5 py-1 rounded-xl text-xs sm:text-sm">Berkembang (75%)</span>
                 </div>
-                <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden">
                     <div class="bg-amber-500 h-full w-[75%] rounded-full"></div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 11: SETTINGS SCREEN -->
-        <div id="screen-settings" class="hidden flex-1 flex flex-col py-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white drop-shadow">⚙️ Pengaturan</h2>
-                <button onclick="router.navigate('home')" class="bg-white/80 hover:bg-white text-slate-800 font-bold px-4 py-2 rounded-xl shadow">Kembali</button>
+        <div id="screen-settings" class="hidden flex-1 flex flex-col py-2 overflow-y-auto max-h-[88vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white drop-shadow">⚙️ Pengaturan</h2>
+                <button onclick="router.navigate('home')" class="bg-white/90 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-xl shadow text-xs sm:text-sm">Kembali</button>
             </div>
-            <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl space-y-4 border-4 border-white max-w-xl mx-auto w-full">
+            <div class="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-xl space-y-3 border-4 border-white max-w-xl mx-auto w-full">
                 <div class="flex justify-between items-center">
-                    <span class="font-bold text-slate-700 text-lg">Musik Latar</span>
-                    <button onclick="toggleMusic()" id="setting-music" class="bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl">ON</button>
+                    <span class="font-bold text-slate-700 text-base sm:text-lg">Musik Latar</span>
+                    <button onclick="toggleMusic()" id="setting-music" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
-                <div class="flex justify-between items-center border-t border-slate-200 pt-4">
-                    <span class="font-bold text-slate-700 text-lg">Efek Suara & Narasi</span>
-                    <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl">ON</button>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-3">
+                    <span class="font-bold text-slate-700 text-base sm:text-lg">Efek Suara & Narasi</span>
+                    <button onclick="toggleAudio()" id="setting-audio" class="bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-xl text-sm">ON</button>
                 </div>
-                <div class="border-t border-slate-200 pt-4 text-center">
-                    <p class="text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.2</p>
-                    <p class="text-sm font-bold text-indigo-900 mt-1">Dibuat oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
+                <div class="border-t border-slate-200 pt-3 text-center">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Petualangan Tembak Cerdas v1.8</p>
+                    <p class="text-xs sm:text-sm font-bold text-indigo-900 mt-0.5">Dibuat dengan ❤️ oleh <span class="text-amber-600 font-extrabold">PCENK</span></p>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL: ADD PROFILE -->
-        <div id="modal-add-profile" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-md w-full border-4 border-indigo-200 pop-in">
-                <h3 class="text-2xl font-extrabold text-indigo-900 mb-4">Tambah Profil Anak</h3>
-                <div class="space-y-4">
+        <div id="modal-add-profile" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+            <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-2xl max-w-md w-full border-4 border-indigo-200 pop-in">
+                <h3 class="text-xl sm:text-2xl font-extrabold text-indigo-900 mb-3">Tambah Profil Anak</h3>
+                <div class="space-y-3 text-sm">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Nama Anak</label>
-                        <input type="text" id="input-new-name" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium" placeholder="Contoh: Siti">
+                        <input type="text" id="input-new-name" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium" placeholder="Contoh: Siti">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Usia (1 - 11 Tahun)</label>
-                        <input type="number" id="input-new-age" min="1" max="11" value="5" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium">
+                        <input type="number" id="input-new-age" min="1" max="11" value="5" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 font-medium">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Pilih Avatar</label>
-                        <div class="flex gap-3 text-3xl">
+                        <div class="flex gap-2.5 text-2xl sm:text-3xl">
                             <button onclick="selectAvatar('👦')" class="avatar-opt p-2 rounded-xl bg-sky-100 border-2 border-sky-500">👦</button>
                             <button onclick="selectAvatar('👧')" class="avatar-opt p-2 rounded-xl bg-slate-100">👧</button>
                             <button onclick="selectAvatar('🤖')" class="avatar-opt p-2 rounded-xl bg-slate-100">🤖</button>
@@ -442,27 +478,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex gap-3 mt-6">
-                    <button onclick="closeAddProfileModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 font-bold py-3 rounded-2xl transition">Batal</button>
-                    <button onclick="saveNewProfile()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition">Simpan</button>
+                <div class="flex gap-2.5 mt-5">
+                    <button onclick="closeAddProfileModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 font-bold py-2.5 rounded-2xl transition text-sm">Batal</button>
+                    <button onclick="saveNewProfile()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-2xl transition text-sm">Simpan</button>
                 </div>
             </div>
         </div>
 
-        <!-- CUSTOM MESSAGE BOX -->
-        <div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center border-4 border-amber-300 pop-in">
-                <div id="msg-icon" class="text-5xl mb-2">⭐</div>
-                <h3 id="msg-title" class="text-xl font-extrabold text-indigo-900 mb-2">Hebat Sekali!</h3>
-                <p id="msg-text" class="text-slate-600 mb-6 font-medium">Kamu berhasil mengenai target!</p>
-                <button onclick="closeMsgBox()" class="w-full bg-amber-400 hover:bg-amber-500 text-white font-extrabold py-3 rounded-2xl shadow transition">Lanjutkan</button>
+        <div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+            <div class="bg-white p-5 rounded-3xl shadow-2xl max-w-xs w-full text-center border-4 border-amber-300 pop-in">
+                <div id="msg-icon" class="text-4xl mb-2">⭐</div>
+                <h3 id="msg-title" class="text-lg sm:text-xl font-extrabold text-indigo-900 mb-1">Hebat Sekali!</h3>
+                <p id="msg-text" class="text-slate-600 mb-5 font-medium text-xs sm:text-sm">Kamu berhasil mengenai target!</p>
+                <button onclick="closeMsgBox()" class="w-full bg-amber-400 hover:bg-amber-500 text-white font-extrabold py-2.5 rounded-2xl shadow transition text-sm">Lanjutkan</button>
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- SOUND GENERATOR (Web Audio API) ---
         let audioEnabled = true;
         let musicEnabled = true;
         let audioCtx = null;
@@ -513,11 +547,46 @@
                     osc.stop(now + 0.3);
                 }
             } catch (e) {
-                console.log("Audio play error:", e);
+                console.log("Audio error:", e);
             }
         }
 
-        // --- APP STATE ---
+        // Distinct world target pools as requested
+        const worldPools = {
+            hutan: {
+                name: "Dunia Hutan Ceria",
+                emoji: "🌳",
+                items: ['🍎 Apel', '🍌 Pisang', '🍇 Anggur', '🍓 Stroberi', '🐱 Kucing', '🐰 Kelinci', '🦊 Rubah', '🌸 Bunga', '🌿 Daun', '🍄 Jamur']
+            },
+            laut: {
+                name: "Dunia Laut Ajaib",
+                emoji: "🌊",
+                items: ['🐠 Ikan', '🐙 Gurita', '🐬 Lumba-lumba', '🦀 Kepiting', '⭐ Bintang Laut', '🐚 Kerang', '🫧 Gelembung', '🐳 Paus']
+            },
+            angkasa: {
+                name: "Dunia Luar Angkasa",
+                emoji: "🚀",
+                items: ['🚀 Roket', '🪐 Planet', '⭐ Bintang', '☄️ Meteor', '👽 Alien Lucu', '🛰️ Satelit', '🌕 Bulan', '☀️ Matahari']
+            },
+            permen: {
+                name: "Dunia Permen",
+                emoji: "🍭",
+                items: ['🍬 Permen', '🍩 Donat', '🧁 Cupcake', '🍫 Cokelat', '🍭 Lolipop', '🎈 Balon', '🍪 Biskuit', '🍮 Puding']
+            }
+        };
+
+        // Color pool for Mode 4 (Cari Warna) with visual representation
+        const colorPool = [
+            { name: "Merah", emoji: "🔴", style: "bg-red-500 text-white border-red-300" },
+            { name: "Hijau", emoji: "🟢", style: "bg-emerald-500 text-white border-emerald-300" },
+            { name: "Biru", emoji: "🔵", style: "bg-blue-500 text-white border-blue-300" },
+            { name: "Kuning", emoji: "🟡", style: "bg-amber-400 text-slate-900 border-amber-200" },
+            { name: "Ungu", emoji: "🟣", style: "bg-purple-500 text-white border-purple-300" },
+            { name: "Pink", emoji: "🩷", style: "bg-pink-500 text-white border-pink-300" },
+            { name: "Oranye", emoji: "🟠", style: "bg-orange-500 text-white border-orange-300" },
+            { name: "Cokelat", emoji: "🟤", style: "bg-amber-800 text-white border-amber-600" }
+        ];
+
         let appState = {
             currentScreen: 'splash',
             activeProfileId: 0,
@@ -528,11 +597,16 @@
                 { id: 0, name: 'Budi', age: 5, avatar: '👦', level: 1, stars: 15, gamesPlayed: 12, timeMinutes: 35 },
                 { id: 1, name: 'Siti', age: 8, avatar: '👧', level: 4, stars: 45, gamesPlayed: 28, timeMinutes: 50 }
             ],
+            achievementsData: [
+                { id: 1, title: "Pemain Cepat", desc: "Menyelesaikan 10 target dengan cepat", icon: "⚡", unlocked: true, claimed: false, reward: 5 },
+                { id: 2, title: "Ahli Warna", desc: "Mengenal seluruh warna dasar", icon: "🎨", unlocked: true, claimed: false, reward: 5 },
+                { id: 3, title: "Raja Angka", desc: "Berhasil mengenai angka 1 sampai 10", icon: "👑", unlocked: true, claimed: false, reward: 10 },
+                { id: 4, title: "Sahabat Hewan", desc: "Mengenal berbagai suara dan hewan", icon: "🐶", unlocked: true, claimed: true, reward: 5 }
+            ],
             timeLimit: 30,
             difficulty: 'mudah'
         };
 
-        // --- ROUTER SYSTEM ---
         const router = {
             navigate: function(screenName) {
                 const screens = ['splash', 'profile', 'home', 'worlds', 'game', 'result', 'parentDashboard', 'achievements', 'wardrobe', 'progress', 'settings'];
@@ -563,18 +637,17 @@
             }
         };
 
-        // --- PROFILE MANAGEMENT ---
         function renderProfiles() {
             const container = document.getElementById('profiles-grid');
             if (!container) return;
             container.innerHTML = appState.profiles.map(p => `
-                <div onclick="selectProfile(${p.id})" class="bg-gradient-to-r from-sky-100 to-indigo-100 hover:from-sky-200 hover:to-indigo-200 p-5 rounded-2xl border-2 border-indigo-300 cursor-pointer flex items-center gap-4 shadow transition transform hover:scale-102">
-                    <span class="text-4xl">${p.avatar}</span>
-                    <div class="flex-1">
-                        <h4 class="font-extrabold text-lg text-indigo-900">${p.name}</h4>
-                        <p class="text-sm text-slate-600">Usia: ${p.age} Tahun • Level ${p.level}</p>
+                <div onclick="selectProfile(${p.id})" class="bg-gradient-to-r from-sky-100 to-indigo-100 hover:from-sky-200 hover:to-indigo-200 p-4 rounded-2xl border-2 border-indigo-300 cursor-pointer flex items-center gap-3 shadow transition transform hover:scale-102">
+                    <span class="text-3xl sm:text-4xl">${p.avatar}</span>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-extrabold text-base sm:text-lg text-indigo-900 truncate">${p.name}</h4>
+                        <p class="text-xs sm:text-sm text-slate-600">Usia: ${p.age} Thn • Level ${p.level}</p>
                     </div>
-                    <div class="text-amber-500 font-extrabold text-lg">⭐ ${p.stars}</div>
+                    <div class="text-amber-500 font-extrabold text-sm sm:text-lg shrink-0">⭐ ${p.stars}</div>
                 </div>
             `).join('');
         }
@@ -637,16 +710,13 @@
             renderProfiles();
         }
 
-        // --- GAME ENGINE ---
-        let gameInterval = null;
-        let timerInterval = null;
-        let gameScore = 0;
-        let gameTimeLeft = 60;
-        let currentInstruction = "";
-        let correctTargetValue = "";
+        function startQuickPlay() {
+            appState.activeGameMode = Math.floor(Math.random() * 4) + 1;
+            router.navigate('game');
+        }
 
-        function selectWorld(world) {
-            appState.activeWorld = world;
+        function selectWorld(worldKey) {
+            appState.activeWorld = worldKey;
             router.navigate('game');
         }
 
@@ -654,6 +724,16 @@
             appState.activeGameMode = mode;
             router.navigate('game');
         }
+
+        let timerInterval = null;
+        let gameScore = 0;
+        let gameTimeLeft = 60;
+        let currentQuestion = {
+            instruction: "",
+            correctValue: "",
+            options: [],
+            isColorMode: false
+        };
 
         function initGame() {
             gameScore = 0;
@@ -663,13 +743,7 @@
             if (scoreEl) scoreEl.innerText = gameScore;
             if (timerEl) timerEl.innerText = gameTimeLeft;
             
-            setupLevelTask();
-            
-            const arena = document.getElementById('game-arena');
-            if (!arena) return;
-            arena.innerHTML = '';
-
-            spawnTargets();
+            generateNewRound();
 
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -680,119 +754,165 @@
                     endGame();
                 }
             }, 1000);
-
-            if (gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(() => {
-                if (arena.children.length < 6) {
-                    spawnSingleTarget();
-                }
-            }, 2000);
         }
 
         function stopGameLoop() {
-            if (gameInterval) clearInterval(gameInterval);
             if (timerInterval) clearInterval(timerInterval);
         }
 
-        function setupLevelTask() {
+        function generateNewRound() {
             const mode = appState.activeGameMode;
-            if (mode === 1) { // Belajar Sambil Bermain
-                const items = ['🍎 Apel', '🍌 Pisang', '🐱 Kucing', '🐶 Anjing', '🌸 Bunga'];
-                correctTargetValue = items[Math.floor(Math.random() * items.length)];
-                currentInstruction = `Sentuh target: ${correctTargetValue}`;
-            } else if (mode === 2) { // Tembak Angka
-                const num = Math.floor(Math.random() * 9) + 1;
-                correctTargetValue = num.toString();
-                currentInstruction = `Cari angka ${num}!`;
-            } else if (mode === 3) { // Hitung Cepat
+            const worldKey = appState.activeWorld;
+            const worldData = worldPools[worldKey] || worldPools['hutan'];
+
+            let correctVal = "";
+            let instruction = "";
+            let rawOptions = [];
+            let isColorMode = false;
+
+            if (mode === 1) {
+                // Belajar Sambil Bermain (World Specific Items)
+                let shuffledItems = [...worldData.items].sort(() => 0.5 - Math.random());
+                rawOptions = shuffledItems.slice(0, 4);
+                correctVal = rawOptions[Math.floor(Math.random() * rawOptions.length)];
+                instruction = `[${worldData.emoji}] Sentuh target: ${correctVal}`;
+            } else if (mode === 2) {
+                // Tembak Angka (1 - 10)
+                let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].sort(() => 0.5 - Math.random());
+                rawOptions = numbers.slice(0, 4).map(n => n.toString());
+                correctVal = rawOptions[Math.floor(Math.random() * rawOptions.length)];
+                instruction = `🎯 Cari angka ${correctVal}!`;
+            } else if (mode === 3) {
+                // Hitung Cepat (Math A + B)
                 const a = Math.floor(Math.random() * 5) + 1;
                 const b = Math.floor(Math.random() * 4) + 1;
-                correctTargetValue = (a + b).toString();
-                currentInstruction = `Berapa hasil ${a} + ${b} = ?`;
-            } else if (mode === 4) { // Cari Warna
-                const colors = ['Merah', 'Hijau', 'Biru', 'Kuning'];
-                correctTargetValue = colors[Math.floor(Math.random() * colors.length)];
-                currentInstruction = `Cari warna ${correctTargetValue}!`;
+                const ans = a + b;
+                correctVal = ans.toString();
+                instruction = `➕ Berapa hasil ${a} + ${b} = ?`;
+
+                let distractors = [ans];
+                while (distractors.length < 4) {
+                    let d = ans + (Math.floor(Math.random() * 5) - 2);
+                    if (d >= 1 && !distractors.includes(d)) {
+                        distractors.push(d);
+                    }
+                }
+                rawOptions = distractors.map(d => d.toString()).sort(() => 0.5 - Math.random());
+                if (!rawOptions.includes(correctVal)) {
+                    rawOptions[0] = correctVal;
+                    rawOptions.sort(() => 0.5 - Math.random());
+                }
+            } else if (mode === 4) {
+                // Cari Warna with custom color objects and matching visuals
+                isColorMode = true;
+                let shuffledColors = [...colorPool].sort(() => 0.5 - Math.random());
+                rawOptions = shuffledColors.slice(0, 4); // Array of color objects {name, emoji, style}
+                const correctColorObj = rawOptions[Math.floor(Math.random() * rawOptions.length)];
+                correctVal = correctColorObj.name;
+                instruction = `🎨 Sentuh warna ${correctVal}!`;
             } else {
-                correctTargetValue = "5";
-                currentInstruction = `Selesaikan tantangan cepat!`;
+                // Tantangan Waktu / Boss Edukasi
+                let shuffled = [...worldData.items].sort(() => 0.5 - Math.random());
+                rawOptions = shuffled.slice(0, 4);
+                correctVal = rawOptions[Math.floor(Math.random() * rawOptions.length)];
+                instruction = `🎯 Cari target ${worldData.name}: ${correctVal}`;
             }
+
+            if (!isColorMode && !rawOptions.includes(correctVal)) {
+                rawOptions[0] = correctVal;
+                rawOptions.sort(() => 0.5 - Math.random());
+            }
+
+            currentQuestion = {
+                instruction: instruction,
+                correctValue: correctVal,
+                options: rawOptions,
+                isColorMode: isColorMode
+            };
+
             const instrEl = document.getElementById('game-instruction');
-            if (instrEl) instrEl.innerText = currentInstruction;
+            if (instrEl) instrEl.innerText = currentQuestion.instruction;
+
+            renderTargetsInArena();
         }
 
-        function spawnTargets() {
+        function renderTargetsInArena() {
             const arena = document.getElementById('game-arena');
             if (!arena) return;
             arena.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
-                spawnSingleTarget();
-            }
-        }
 
-        function spawnSingleTarget() {
-            const arena = document.getElementById('game-arena');
-            if (!arena) return;
-            const el = document.createElement('div');
-            
-            const isCorrect = Math.random() < 0.3;
-            let val = "";
-            let bgClass = "bg-white/90 text-indigo-900 border-indigo-300";
+            const positions = [
+                { left: '15%', top: '20%' },
+                { left: '60%', top: '20%' },
+                { left: '15%', top: '60%' },
+                { left: '60%', top: '60%' }
+            ].sort(() => 0.5 - Math.random());
 
-            if (appState.activeGameMode === 1) {
-                val = isCorrect ? correctTargetValue : ['🚗 Mobil', '⚽ Bola', '🎈 Balon'][Math.floor(Math.random()*3)];
-            } else if (appState.activeGameMode === 2) {
-                val = isCorrect ? correctTargetValue : (Math.floor(Math.random() * 9) + 1).toString();
-            } else if (appState.activeGameMode === 3) {
-                val = isCorrect ? correctTargetValue : (Math.floor(Math.random() * 10) + 1).toString();
-            } else {
-                val = isCorrect ? correctTargetValue : ['Merah', 'Hijau', 'Biru', 'Kuning'][Math.floor(Math.random()*4)];
-            }
-
-            el.className = `absolute p-4 rounded-full shadow-lg font-extrabold text-xl sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${bgClass}`;
-            el.style.left = `${Math.random() * 75 + 10}%`;
-            el.style.top = `${Math.random() * 70 + 15}%`;
-            el.innerText = val;
-
-            el.onclick = (e) => {
-                const rect = el.getBoundingClientRect();
-                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+            currentQuestion.options.forEach((opt, index) => {
+                const el = document.createElement('div');
+                const pos = positions[index];
                 
-                if (val === correctTargetValue) {
-                    playSound('success');
-                    gameScore += 10;
-                    const sEl = document.getElementById('game-score');
-                    if (sEl) sEl.innerText = gameScore;
-                    showMsgBox("⭐ Hebat!", "Pintar sekali! Target tepat sasaran!");
-                    setupLevelTask();
-                } else {
-                    playSound('error');
-                    gameScore = Math.max(0, gameScore - 2);
-                    const sEl = document.getElementById('game-score');
-                    if (sEl) sEl.innerText = gameScore;
-                }
-                el.remove();
-                spawnSingleTarget();
-            };
+                let optValue = "";
+                let displayHTML = "";
 
-            arena.appendChild(el);
+                if (currentQuestion.isColorMode) {
+                    // opt is a color object { name, emoji, style }
+                    optValue = opt.name;
+                    displayHTML = `<div class="flex items-center gap-2"><span class="text-3xl">${opt.emoji}</span><span>${opt.name}</span></div>`;
+                    el.className = `absolute p-4 sm:p-6 rounded-3xl shadow-xl font-extrabold text-base sm:text-xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim ${opt.style}`;
+                } else {
+                    optValue = opt;
+                    displayHTML = `<span>${opt}</span>`;
+                    el.className = `absolute p-4 sm:p-6 rounded-3xl shadow-xl font-extrabold text-base sm:text-2xl cursor-pointer transform transition hover:scale-110 active:scale-95 flex items-center justify-center border-4 pop-in float-anim bg-white/95 text-indigo-900 border-indigo-300`;
+                }
+
+                el.style.left = pos.left;
+                el.style.top = pos.top;
+                el.innerHTML = displayHTML;
+
+                const handleTouchOrClick = (e) => {
+                    e.preventDefault();
+                    const rect = el.getBoundingClientRect();
+                    createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+                    if (optValue === currentQuestion.correctValue) {
+                        playSound('success');
+                        gameScore += 10;
+                        const sEl = document.getElementById('game-score');
+                        if (sEl) sEl.innerText = gameScore;
+                        showMsgBox("⭐ Hebat!", "Pintar sekali! Pilihan tepat sasaran!");
+                        generateNewRound();
+                    } else {
+                        playSound('error');
+                        el.classList.add('shake');
+                        setTimeout(() => el.classList.remove('shake'), 400);
+                        gameScore = Math.max(0, gameScore - 2);
+                        const sEl = document.getElementById('game-score');
+                        if (sEl) sEl.innerText = gameScore;
+                    }
+                };
+
+                el.addEventListener('click', handleTouchOrClick);
+                el.addEventListener('touchstart', handleTouchOrClick, { passive: false });
+                arena.appendChild(el);
+            });
         }
 
         function createParticles(x, y) {
             const arena = document.getElementById('game-arena');
             if (!arena) return;
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 6; i++) {
                 const p = document.createElement('div');
-                p.className = 'particle text-2xl';
-                p.innerText = ['✨', '⭐', '🎈', '💖'][Math.floor(Math.random()*4)];
+                p.className = 'particle text-xl sm:text-2xl';
+                p.innerText = ['✨', '⭐', '🎈', '💥'][Math.floor(Math.random()*4)];
                 p.style.left = `${x}px`;
                 p.style.top = `${y}px`;
                 const angle = Math.random() * Math.PI * 2;
-                const dist = Math.random() * 80 + 40;
+                const dist = Math.random() * 60 + 30;
                 p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
                 p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
                 arena.appendChild(p);
-                setTimeout(() => p.remove(), 800);
+                setTimeout(() => p.remove(), 700);
             }
         }
 
@@ -821,7 +941,6 @@
             router.navigate('game');
         }
 
-        // --- PARENT DASHBOARD & SETTINGS ---
         function updateParentDashboard() {
             const p = appState.profiles[appState.activeProfileId];
             if (!p) return;
@@ -839,7 +958,7 @@
 
         function setDifficulty(diff) {
             appState.difficulty = diff;
-            showMsgBox("🎚️ Tingkat Kesulitan", `Kesulitan diatur ke ${diff}.`);
+            showMsgBox("🎚️ Kesulitan", `Kesulitan diatur ke ${diff}.`);
         }
 
         function toggleAudio() {
@@ -856,46 +975,72 @@
             if (btn) btn.innerText = musicEnabled ? "ON" : "OFF";
         }
 
-        // --- ACHIEVEMENTS & WARDROBE ---
         function renderAchievements() {
             const list = document.getElementById('achievements-list');
             if (!list) return;
-            const achievements = [
-                { title: "Pemain Cepat", desc: "Menyelesaikan 10 target dengan cepat", icon: "⚡", unlocked: true },
-                { title: "Ahli Warna", desc: "Mengenal seluruh warna dasar", icon: "🎨", unlocked: true },
-                { title: "Raja Angka", desc: "Berhasil menembak angka 1 sampai 10", icon: "👑", unlocked: false },
-                { title: "Sahabat Hewan", desc: "Mengenal berbagai suara dan hewan", icon: "🐶", unlocked: true }
-            ];
-            list.innerHTML = achievements.map(a => `
-                <div class="bg-white/90 p-5 rounded-2xl shadow flex items-center gap-4 border-2 ${a.unlocked ? 'border-amber-300' : 'border-slate-200 opacity-60'}">
-                    <span class="text-4xl">${a.icon}</span>
-                    <div>
-                        <h4 class="font-extrabold text-indigo-900">${a.title}</h4>
-                        <p class="text-sm text-slate-600">${a.desc}</p>
+            
+            list.innerHTML = appState.achievementsData.map((a, index) => {
+                let badgeStyle = a.unlocked ? 'border-amber-300 bg-white/95' : 'border-slate-200 bg-white/60 opacity-60';
+                let actionBtn = '';
+                
+                if (a.unlocked && !a.claimed) {
+                    actionBtn = `<button onclick="claimAchievement(${index})" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs sm:text-sm shadow transform transition active:scale-95 cursor-pointer">Klaim +${a.reward} ⭐</button>`;
+                } else if (a.claimed) {
+                    actionBtn = `<span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl text-xs sm:text-sm">✅ Diklaim</span>`;
+                } else {
+                    actionBtn = `<span class="text-slate-400 font-semibold text-xs sm:text-sm">🔒 Terkunci</span>`;
+                }
+
+                return `
+                    <div class="p-4 rounded-2xl shadow flex items-center justify-between gap-3 border-2 transition ${badgeStyle}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl sm:text-4xl">${a.icon}</span>
+                            <div>
+                                <h4 class="font-extrabold text-indigo-900 text-sm sm:text-base">${a.title}</h4>
+                                <p class="text-xs sm:text-sm text-slate-600">${a.desc}</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0">
+                            ${actionBtn}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        function claimAchievement(index) {
+            const ach = appState.achievementsData[index];
+            if (ach && ach.unlocked && !ach.claimed) {
+                ach.claimed = true;
+                const p = appState.profiles[appState.activeProfileId];
+                if (p) {
+                    p.stars += ach.reward;
+                }
+                playSound('success');
+                showMsgBox("🏆 Hadiah Diklaim!", `Selamat! Kamu mendapatkan +${ach.reward} Bintang.`);
+                renderAchievements();
+                updateHeader();
+            }
         }
 
         function renderWardrobe() {
             const list = document.getElementById('wardrobe-list');
             if (!list) return;
             const items = [
-                { name: "Kostum Robot Bimo", icon: "🤖", unlocked: true },
-                { name: "Kostum Peri Pelangi", icon: "🧚", unlocked: true },
-                { name: "Kostum Petualang", icon: "🎒", unlocked: false },
-                { name: "Kostum Astronot", icon: "🧑‍🚀", unlocked: false }
+                { name: "Pistol 3D Robot Bimo", icon: "🤖🔫", unlocked: true },
+                { name: "Pistol Pelangi Peri", icon: "🧚✨", unlocked: true },
+                { name: "Blaster Angkasa", icon: "🧑‍🚀🚀", unlocked: false },
+                { name: "Pistol Gelembung", icon: "🫧🍬", unlocked: false }
             ];
             list.innerHTML = items.map(i => `
-                <div class="bg-white/90 p-4 rounded-2xl shadow text-center border-2 ${i.unlocked ? 'border-pink-300' : 'border-slate-200 opacity-60'}">
-                    <div class="text-5xl mb-2">${i.icon}</div>
-                    <div class="font-bold text-slate-800 text-sm">${i.name}</div>
-                    <div class="text-xs mt-1 ${i.unlocked ? 'text-emerald-600 font-extrabold' : 'text-slate-400'}">${i.unlocked ? 'Dimiliki' : 'Terkunci'}</div>
+                <div class="bg-white/95 p-3 rounded-2xl shadow text-center border-2 ${i.unlocked ? 'border-pink-300' : 'border-slate-200 opacity-60'}">
+                    <div class="text-4xl sm:text-5xl mb-1">${i.icon}</div>
+                    <div class="font-bold text-slate-800 text-xs sm:text-sm">${i.name}</div>
+                    <div class="text-[10px] sm:text-xs mt-1 ${i.unlocked ? 'text-emerald-600 font-extrabold' : 'text-slate-400'}">${i.unlocked ? 'Dimiliki' : 'Terkunci'}</div>
                 </div>
             `).join('');
         }
 
-        // --- MODAL MESSAGE BOX ---
         function showMsgBox(title, text) {
             document.getElementById('msg-title').innerText = title;
             document.getElementById('msg-text').innerText = text;
@@ -905,7 +1050,6 @@
             document.getElementById('custom-msg-modal').classList.add('hidden');
         }
 
-        // Initialize Splash Screen on load
         window.onload = function() {
             router.navigate('splash');
         };
